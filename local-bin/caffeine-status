@@ -1,0 +1,8 @@
+#!/bin/bash
+# Caffeine status for waybar
+
+if pgrep -x "hypridle" > /dev/null; then
+    echo '{"text": "󰒳", "tooltip": "Caffeine OFF - idle enabled", "class": "off"}'
+else
+    echo '{"text": "󰒲", "tooltip": "Caffeine ON - idle disabled", "class": "on"}'
+fi

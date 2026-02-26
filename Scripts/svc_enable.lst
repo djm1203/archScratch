@@ -1,0 +1,9 @@
+# archScratch - systemd services to enable
+# One service per line
+
+NetworkManager
+bluetooth
+docker
+greetd
+tlp
+systemd-resolved

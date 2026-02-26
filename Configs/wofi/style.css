@@ -1,0 +1,80 @@
+/* Wofi Catppuccin-Mocha Theme */
+/* Matches Waybar styling */
+
+* {
+    font-family: "Inter", "NotoSans Nerd Font", sans-serif;
+    font-size: 14px;
+}
+
+window {
+    margin: 0px;
+    border: 2px solid #313244;
+    border-radius: 12px;
+    background-color: #1a1b26;
+}
+
+#input {
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    background-color: #313244;
+    color: #c6d0f5;
+}
+
+#input:focus {
+    border: none;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(153, 209, 219, 0.3);
+}
+
+#inner-box {
+    margin: 5px 10px 10px 10px;
+    border: none;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 0px 5px;
+    color: #c6d0f5;
+}
+
+#text:selected {
+    color: #1a1b26;
+}
+
+#entry {
+    padding: 8px 10px;
+    margin: 2px 0px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+#entry:selected {
+    background-color: #99d1db;
+    outline: none;
+}
+
+#entry:hover {
+    background-color: #313244;
+}
+
+#entry:selected #text {
+    color: #1a1b26;
+    font-weight: 500;
+}
+
+#img {
+    margin-right: 8px;
+}

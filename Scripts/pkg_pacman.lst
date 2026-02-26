@@ -1,0 +1,125 @@
+# archScratch - pacman package list
+# Install with: pacman -S --needed - < pkg_pacman.lst
+
+# Core
+base
+base-devel
+git
+sudo
+zsh
+man-db
+man-pages
+unzip
+acpi
+
+# Hyprland / Wayland desktop
+hyprland
+hypridle
+hyprlock
+waybar
+wofi
+swww
+waypaper
+mako
+libnotify
+greetd
+xdg-desktop-portal
+xdg-desktop-portal-hyprland
+xdg-user-dirs
+polkit-gnome
+polkit-kde-agent
+grim
+slurp
+wl-clipboard
+qt5-wayland
+qt6-wayland
+qt5ct
+qt6ct
+kvantum
+nwg-displays
+brightnessctl
+
+# Audio (PipeWire)
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+pavucontrol
+
+# Bluetooth
+blueman
+bluez
+bluez-utils
+
+# Network
+networkmanager
+network-manager-applet
+wireguard-tools
+whois
+
+# Fonts
+ttf-jetbrains-mono
+ttf-jetbrains-mono-nerd
+ttf-noto-nerd
+noto-fonts
+noto-fonts-emoji
+inter-font
+woff2-font-awesome
+
+# Applications
+firefox
+dolphin
+kio-extras
+ark
+kitty
+foot
+obsidian
+torbrowser-launcher
+zathura
+zathura-pdf-mupdf
+btop
+fastfetch
+xdot
+graphviz
+evolution
+evolution-ews
+gnome-control-center
+gnome-keyring
+gnome-online-accounts
+breeze
+papirus-icon-theme
+perl-image-exiftool
+
+# Dev tools
+neovim
+nodejs
+npm
+python-pip
+python-pipx
+go
+rustup
+docker
+docker-compose
+lazydocker
+git
+github-cli
+azure-cli
+ripgrep
+fd
+
+# LaTeX (for nvim vimtex)
+texlive-basic
+texlive-binextra
+texlive-latex
+texlive-latexextra
+texlive-latexrecommended
+
+# Power management
+tlp
+tlp-rdw
+powertop
+fwupd
+
+# Microcode (pick one - handled by install script prompt)
+# intel-ucode
+# amd-ucode

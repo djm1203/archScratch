@@ -1,0 +1,9 @@
+# Don't commit compiled binaries
+local-bin/waybar-module-pomodoro
+
+# Don't commit nvim plugin cache
+Configs/nvim/.repro/
+
+# OS files
+.DS_Store
+Thumbs.db

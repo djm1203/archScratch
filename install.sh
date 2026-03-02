@@ -71,18 +71,21 @@ main() {
     # 3. waybar-module-pomodoro (built from source)
     bash "$DOTFILES_DIR/Scripts/install_pomodoro.sh"
 
-    # 4. Claude Code
+    # 4. Git / GitHub SSH setup
+    bash "$DOTFILES_DIR/Scripts/install_git_accounts.sh"
+
+    # 5. Claude Code
     if ask_yes_no "Install Claude Code CLI?"; then
         bash "$DOTFILES_DIR/Scripts/install_claude.sh"
     fi
 
-    # 5. Deploy dotfiles
+    # 7. Deploy dotfiles
     bash "$DOTFILES_DIR/Scripts/restore_cfg.sh"
 
-    # 6. Enable services
+    # 8. Enable services
     bash "$DOTFILES_DIR/Scripts/restore_svc.sh"
 
-    # 7. Done
+    # 9. Done
     print_header "Installation complete!"
     echo -e "
   ${GREEN}Next steps:${NC}

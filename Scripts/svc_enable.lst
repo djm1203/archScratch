@@ -1,5 +1,10 @@
 # archScratch - systemd services to enable
 # One service per line
+#
+# Note: ASUS/NVIDIA-specific services are handled in pkg_install.sh:
+#   power-profiles-daemon, nvidia-suspend/hibernate/resume, nvidia-powerd
+#   asusd enables automatically via udev — no manual entry needed
+#   tlp is disabled on ASUS machines (conflicts with power-profiles-daemon)
 
 NetworkManager
 bluetooth

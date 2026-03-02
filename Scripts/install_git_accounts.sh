@@ -92,24 +92,24 @@ EOF
 EOF
     print_ok "~/.gitconfig-personal written"
 
-    # Print public keys
-    echo -e "\n${BOLD}${CYAN}  ══════════════════════════════════════════════════${NC}"
-    echo -e "${BOLD}${CYAN}  Add these keys to their respective GitHub accounts${NC}"
-    echo -e "${BOLD}${CYAN}  Settings → SSH and GPG keys → New SSH key${NC}"
-    echo -e "${BOLD}${CYAN}  ══════════════════════════════════════════════════${NC}\n"
+    # Save keys to file so they're accessible after reboot into Hyprland
+    cat > "$HOME/github-keys.txt" <<EOF
+# GitHub SSH Public Keys
+# Add each key to its respective GitHub account:
+# GitHub → Settings → SSH and GPG keys → New SSH key
+# Then delete this file.
 
-    echo -e "${YELLOW}  WORK key${NC} (github.com → work account):"
-    echo -e "${BOLD}$(cat "$HOME/.ssh/id_ed25519_work.pub")${NC}\n"
+== WORK KEY ($work_email) ==
+$(cat "$HOME/.ssh/id_ed25519_work.pub")
 
-    echo -e "${YELLOW}  PERSONAL key${NC} (github.com → djm1203):"
-    echo -e "${BOLD}$(cat "$HOME/.ssh/id_ed25519_personal.pub")${NC}\n"
+== PERSONAL KEY ($personal_email) ==
+$(cat "$HOME/.ssh/id_ed25519_personal.pub")
+EOF
 
-    echo -e "${GREEN}  Usage:${NC}"
-    echo -e "  # Work repo  → cd ~/Desktop/Quantum_Intelligence && git clone git@github.com:org/repo.git"
-    echo -e "  # Personal   → cd ~/Desktop/Personal && git clone git@github.com:djm1203/repo.git"
-    echo -e "  Git picks the right key + email automatically based on directory.\n"
-
-    read -rp "$(echo -e "${YELLOW}  [!]${NC} Copy the keys above, then press Enter to continue...")"
+    print_ok "Keys saved to ~/github-keys.txt"
+    echo -e "  After rebooting into Hyprland, open a terminal and run:"
+    echo -e "  ${CYAN}cat ~/github-keys.txt${NC}"
+    echo -e "  Add each key to its GitHub account, then ${CYAN}rm ~/github-keys.txt${NC}\n"
 }
 
 main() {

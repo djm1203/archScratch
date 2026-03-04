@@ -118,8 +118,8 @@ texlive-latexextra
 texlive-latexrecommended
 
 # Power management
-tlp
-tlp-rdw
+# tlp and tlp-rdw removed — conflicts with asusctl/power-profiles-daemon on ASUS
+# ASUS power management is handled by asusctl + power-profiles-daemon from [g14] repo
 powertop
 fwupd
 

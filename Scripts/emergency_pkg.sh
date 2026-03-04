@@ -16,7 +16,7 @@ sudo pacman -S --needed \
   fastfetch btop neovim nodejs npm git github-cli ripgrep fd \
   python-pip python-pipx go rustup docker docker-compose \
   obsidian firefox zathura zathura-pdf-mupdf torbrowser-launcher \
-  tlp tlp-rdw openssh curl unzip man-db gnome-keyring \
+  openssh curl unzip man-db gnome-keyring \
   xdg-user-dirs libnotify hyprland
 
 # AUR packages (waypaper, spotify, kvantum catppuccin theme)

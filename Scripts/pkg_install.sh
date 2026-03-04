@@ -12,6 +12,13 @@ setup_asus_repo() {
     [[ "$ASUS_LAPTOP" != "true" ]] && return
 
     print_header "Adding [g14] ASUS Linux repo"
+
+    # Import and locally sign the asus-linux repo signing key
+    print_header "Importing asus-linux PGP signing key"
+    sudo pacman-key --recv-keys 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+    sudo pacman-key --lsign-key 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+    print_ok "asus-linux signing key trusted"
+
     if grep -q '^\[g14\]' /etc/pacman.conf; then
         print_ok "[g14] repo already present in pacman.conf"
     else

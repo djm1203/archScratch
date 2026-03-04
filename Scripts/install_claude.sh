@@ -17,8 +17,19 @@ main() {
         hash -r
     fi
 
+    # Configure npm to install to user directory (avoids root/permission errors)
+    mkdir -p "$HOME/.npm-global"
+    npm config set prefix "$HOME/.npm-global"
+    export PATH="$HOME/.npm-global/bin:$PATH"
+
     npm install -g @anthropic-ai/claude-code
-    print_ok "Claude Code installed"
+
+    # Persist npm global bin in .zshrc if not already there
+    if ! grep -q 'npm-global' "$HOME/.zshrc" 2>/dev/null; then
+        echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.zshrc"
+    fi
+
+    print_ok "Claude Code installed to ~/.npm-global/bin/"
 }
 
 main "$@"

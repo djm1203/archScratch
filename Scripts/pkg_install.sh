@@ -26,7 +26,7 @@ setup_asus_repo() {
             | sudo tee -a /etc/pacman.conf > /dev/null
         print_ok "[g14] repo added to pacman.conf"
     fi
-    sudo pacman -Sy
+    sudo pacman -Sy || print_warn "[g14] repo sync had warnings — continuing anyway"
 }
 
 install_g14_kernel() {
@@ -172,7 +172,7 @@ main() {
         print_ok "ASUS mode enabled"
     fi
 
-    sudo pacman -Syu --noconfirm
+    sudo pacman -Syu --noconfirm || true
     setup_asus_repo        # adds [g14] repo before any installs (no-op if not ASUS)
     install_yay
     install_pacman_packages

@@ -12,8 +12,9 @@ main() {
     print_header "Installing Claude Code"
 
     if ! command -v npm &>/dev/null; then
-        print_err "npm not found - install nodejs/npm first"
-        exit 1
+        print_warn "npm not found — installing nodejs and npm"
+        sudo pacman -S --needed --noconfirm nodejs npm
+        hash -r
     fi
 
     npm install -g @anthropic-ai/claude-code

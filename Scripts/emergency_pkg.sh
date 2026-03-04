@@ -2,7 +2,6 @@
 # archScratch - emergency package install
 # Run this if pkg_install.sh fails: bash Scripts/emergency_pkg.sh
 
-set -e
 source "$(dirname "$0")/global_fn.sh"
 
 print_header "Installing core packages"
@@ -17,8 +16,16 @@ sudo pacman -S --needed \
   fastfetch btop neovim nodejs npm git github-cli ripgrep fd \
   python-pip python-pipx go rustup docker docker-compose \
   obsidian firefox zathura zathura-pdf-mupdf torbrowser-launcher \
-  tlp tlp-rdw openssh curl unzip man-db waypaper gnome-keyring \
+  tlp tlp-rdw openssh curl unzip man-db gnome-keyring \
   xdg-user-dirs libnotify hyprland
+
+# AUR packages (waypaper, spotify, kvantum catppuccin theme)
+if command -v yay &>/dev/null; then
+    print_header "Installing AUR packages"
+    yay -S --needed --noconfirm waypaper spotify kvantum-theme-catppuccin-git
+else
+    print_warn "yay not installed — skipping AUR packages (waypaper, spotify)"
+fi
 
 print_header "Enabling services"
 sudo systemctl enable --now NetworkManager

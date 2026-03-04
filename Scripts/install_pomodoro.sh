@@ -16,6 +16,8 @@ main() {
     if ! command -v cargo &>/dev/null; then
         print_header "Initializing rustup toolchain"
         rustup default stable
+        # Ensure cargo is in PATH for this shell session
+        source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
     fi
 
     local tmpdir

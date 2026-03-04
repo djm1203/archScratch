@@ -7,6 +7,8 @@ base-devel
 git
 sudo
 zsh
+curl
+openssh
 man-db
 man-pages
 unzip
@@ -38,6 +40,7 @@ qt6ct
 kvantum
 nwg-displays
 brightnessctl
+playerctl
 
 # Audio (PipeWire)
 pipewire-alsa

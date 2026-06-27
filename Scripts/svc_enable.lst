@@ -10,5 +10,4 @@ NetworkManager
 bluetooth
 docker
 greetd
-tlp
 systemd-resolved

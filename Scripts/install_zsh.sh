@@ -49,11 +49,17 @@ install_plugins() {
 
 set_default_shell() {
     print_header "Setting zsh as default shell"
-    if [[ "$SHELL" != "$(which zsh)" ]]; then
-        chsh -s "$(which zsh)"
+    local zsh_path
+    zsh_path="$(command -v zsh)" || { print_warn "zsh not found; skipping chsh"; return; }
+    # chsh refuses shells that aren't listed in /etc/shells.
+    grep -qx "$zsh_path" /etc/shells 2>/dev/null \
+        || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    if [[ "$SHELL" == "$zsh_path" ]]; then
+        print_ok "zsh already default shell"
+    elif chsh -s "$zsh_path"; then
         print_ok "Default shell set to zsh (takes effect on next login)"
     else
-        print_ok "zsh already default shell"
+        print_warn "chsh failed — run 'chsh -s $zsh_path' manually later"
     fi
 }
 

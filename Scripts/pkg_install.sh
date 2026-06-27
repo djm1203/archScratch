@@ -26,7 +26,8 @@ setup_asus_repo() {
             | sudo tee -a /etc/pacman.conf > /dev/null
         print_ok "[g14] repo added to pacman.conf"
     fi
-    sudo pacman -Sy || print_warn "[g14] repo sync had warnings — continuing anyway"
+    # Full sync+upgrade after adding the repo (avoids partial-upgrade breakage).
+    sudo pacman -Syu --noconfirm || print_warn "[g14] repo sync had warnings — continuing anyway"
 }
 
 install_g14_kernel() {
@@ -54,14 +55,23 @@ install_g14_kernel() {
             ucode="initrd /amd-ucode.img"
         fi
 
-        # Grab root options from existing entry
-        local existing root_opts
-        existing=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -1)
+        # Determine kernel options robustly:
+        #  1) copy the `options` line from an existing loader entry (what already boots), else
+        #  2) reuse the running kernel's /proc/cmdline (minus BOOT_IMAGE/initrd tokens), else
+        #  3) fall back to a guess and warn loudly.
+        local existing root_opts=""
+        existing=$(grep -L 'linux-g14' /boot/loader/entries/*.conf 2>/dev/null | head -1)
+        [[ -z "$existing" ]] && existing=$(ls /boot/loader/entries/*.conf 2>/dev/null | head -1)
         if [[ -n "$existing" ]]; then
-            root_opts=$(grep "^options" "$existing" | head -1 | sed 's/^options //')
-        else
+            root_opts=$(grep '^options' "$existing" | head -1 | sed 's/^options //')
+        fi
+        if [[ -z "$root_opts" && -r /proc/cmdline ]]; then
+            root_opts=$(tr ' ' '\n' < /proc/cmdline \
+                | grep -vE '^(BOOT_IMAGE|initrd)=' | paste -sd' ' -)
+        fi
+        if [[ -z "$root_opts" ]]; then
             root_opts="root=/dev/sda2 rw"
-            print_warn "Could not detect root options — edit $entry manually"
+            print_warn "Could not detect root options — EDIT $entry before rebooting!"
         fi
 
         sudo tee "$entry" > /dev/null <<EOF
@@ -99,18 +109,52 @@ install_yay() {
     print_ok "yay installed"
 }
 
+ensure_rust_toolchain() {
+    # `rustup` (the pacman package) ships no default toolchain; install one now
+    # so the from-source pomodoro build later has a working `cargo`.
+    command -v rustup &>/dev/null || return 0
+    print_header "Initializing Rust stable toolchain"
+    rustup default stable 2>/dev/null || rustup toolchain install stable \
+        || print_warn "rustup could not initialize a stable toolchain"
+    print_ok "Rust toolchain ready"
+}
+
+install_ruby_gems() {
+    # Rails ships as a gem, not a maintained Arch package. Install it (and Bundler)
+    # as user gems; ~/.local gem bin is put on PATH in .zshrc.
+    command -v gem &>/dev/null || { print_warn "gem not found — skipping Ruby on Rails"; return 0; }
+    print_header "Installing Ruby gems (Rails, Bundler)"
+    if gem install --user-install --no-document rails bundler; then
+        print_ok "Rails + Bundler installed (user gems)"
+    else
+        print_warn "Could not install Rails/Bundler gems"
+    fi
+}
+
 install_pacman_packages() {
     print_header "Installing pacman packages"
     local lst="$DOTFILES_DIR/Scripts/pkg_pacman.lst"
-    grep -v '^\s*#' "$lst" | grep -v '^\s*$' | sudo pacman -S --needed --noconfirm -
-    print_ok "Pacman packages installed"
+    local pkgs
+    mapfile -t pkgs < <(grep -vE '^\s*#|^\s*$' "$lst")
+    pac_install "${pkgs[@]}" || print_warn "Some pacman packages were skipped (see above)."
+    print_ok "Pacman package step complete"
 }
 
 install_aur_packages() {
     print_header "Installing AUR packages"
+    if ! command -v yay &>/dev/null; then
+        print_warn "yay not available — skipping AUR packages"
+        return 0
+    fi
     local lst="$DOTFILES_DIR/Scripts/pkg_aur.lst"
-    grep -v '^\s*#' "$lst" | grep -v '^\s*$' | xargs yay -S --needed --noconfirm
-    print_ok "AUR packages installed"
+    local pkgs p
+    mapfile -t pkgs < <(grep -vE '^\s*#|^\s*$' "$lst")
+    [[ ${#pkgs[@]} -eq 0 ]] && { print_ok "No AUR packages listed"; return 0; }
+    # Install one at a time so a single failing AUR build doesn't drop the rest.
+    for p in "${pkgs[@]}"; do
+        yay -S --needed --noconfirm "$p" || print_warn "AUR package failed: $p"
+    done
+    print_ok "AUR package step complete"
 }
 
 prompt_microcode() {
@@ -176,6 +220,8 @@ main() {
     setup_asus_repo        # adds [g14] repo before any installs (no-op if not ASUS)
     install_yay
     install_pacman_packages
+    ensure_rust_toolchain
+    install_ruby_gems
     install_aur_packages
     prompt_microcode
     install_g14_kernel     # installs g14 kernel + bootloader entry (no-op if not ASUS)

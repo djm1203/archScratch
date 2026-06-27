@@ -13,11 +13,18 @@ main() {
 
     print_header "Building waybar-module-pomodoro"
 
+    # Make sure cargo is reachable; initialize a rustup toolchain if needed.
     if ! command -v cargo &>/dev/null; then
-        print_header "Initializing rustup toolchain"
-        rustup default stable
-        # Ensure cargo is in PATH for this shell session
         source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+    if ! command -v cargo &>/dev/null && command -v rustup &>/dev/null; then
+        print_header "Initializing rustup toolchain"
+        rustup default stable 2>/dev/null || rustup toolchain install stable
+        source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+    if ! command -v cargo &>/dev/null; then
+        print_err "cargo unavailable — skipping waybar-module-pomodoro build."
+        return 1
     fi
 
     local tmpdir

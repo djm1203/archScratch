@@ -1,0 +1,11 @@
+[Unit]
+Description=Rotate the wallpaper periodically (archScratch)
+
+[Timer]
+# First rotation 1 min after login, then every 15 min. Tweak to taste.
+OnActiveSec=1min
+OnUnitActiveSec=15min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

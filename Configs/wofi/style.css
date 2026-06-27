@@ -1,5 +1,9 @@
-/* Wofi Catppuccin-Mocha Theme */
-/* Matches Waybar styling */
+/* Wofi Catppuccin-Mocha Theme — matches Waybar styling */
+/* TO RECOLOR: change @accent (keep in sync with waybar/hypr/kitty). */
+@define-color bg      #1a1b26;
+@define-color surface #313244;
+@define-color text    #c6d0f5;
+@define-color accent  #cba6f7;  /* ← recolor (mauve) */
 
 * {
     font-family: "Inter", "NotoSans Nerd Font", sans-serif;
@@ -8,9 +12,9 @@
 
 window {
     margin: 0px;
-    border: 2px solid #313244;
+    border: 2px solid @surface;
     border-radius: 12px;
-    background-color: #1a1b26;
+    background-color: @bg;
 }
 
 #input {
@@ -18,14 +22,14 @@ window {
     border: none;
     border-radius: 8px;
     padding: 10px 15px;
-    background-color: #313244;
-    color: #c6d0f5;
+    background-color: @surface;
+    color: @text;
 }
 
 #input:focus {
     border: none;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(153, 209, 219, 0.3);
+    box-shadow: 0 0 0 2px alpha(@accent, 0.3);
 }
 
 #inner-box {
@@ -47,11 +51,11 @@ window {
 
 #text {
     margin: 0px 5px;
-    color: #c6d0f5;
+    color: @text;
 }
 
 #text:selected {
-    color: #1a1b26;
+    color: @bg;
 }
 
 #entry {
@@ -62,16 +66,16 @@ window {
 }
 
 #entry:selected {
-    background-color: #99d1db;
+    background-color: @accent;
     outline: none;
 }
 
 #entry:hover {
-    background-color: #313244;
+    background-color: @surface;
 }
 
 #entry:selected #text {
-    color: #1a1b26;
+    color: @bg;
     font-weight: 500;
 }
 

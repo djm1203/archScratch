@@ -5,16 +5,36 @@ source "$(dirname "$0")/global_fn.sh"
 
 BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d-%H%M%S)"
 
+backup_file() {
+    # Move a real file/dir (or foreign symlink) into the timestamped backup dir.
+    local target="$1"
+    mkdir -p "$BACKUP_DIR"
+    mv "$target" "$BACKUP_DIR/"
+    print_warn "Backed up $target → $BACKUP_DIR/"
+}
+
 backup_and_link() {
     local src="$1"   # source file/dir in repo
     local dest="$2"  # destination path
 
-    if [[ -e "$dest" && ! -L "$dest" ]]; then
-        mkdir -p "$BACKUP_DIR"
-        mv "$dest" "$BACKUP_DIR/"
-        print_warn "Backed up existing $dest → $BACKUP_DIR/"
-    elif [[ -L "$dest" ]]; then
-        rm "$dest"
+    # Never create a dangling symlink to a missing source.
+    if [[ ! -e "$src" ]]; then
+        print_err "Source missing, skipping: $src"
+        return 1
+    fi
+
+    if [[ -L "$dest" ]]; then
+        # If the existing symlink already points into this repo, just refresh it;
+        # otherwise it's the user's own link — preserve it by backing it up.
+        local cur
+        cur="$(readlink -f "$dest" 2>/dev/null)"
+        if [[ "$cur" == "$DOTFILES_DIR"/* ]]; then
+            rm -f "$dest"
+        else
+            backup_file "$dest"
+        fi
+    elif [[ -e "$dest" ]]; then
+        backup_file "$dest"
     fi
 
     mkdir -p "$(dirname "$dest")"
@@ -25,32 +45,24 @@ backup_and_link() {
 deploy_configs() {
     print_header "Deploying ~/.config dotfiles"
     local cfg="$DOTFILES_DIR/Configs"
-
-    backup_and_link "$cfg/hypr"        "$HOME/.config/hypr"
-    backup_and_link "$cfg/waybar"      "$HOME/.config/waybar"
-    backup_and_link "$cfg/foot"        "$HOME/.config/foot"
-    backup_and_link "$cfg/wofi"        "$HOME/.config/wofi"
-    backup_and_link "$cfg/mako"        "$HOME/.config/mako"
-    backup_and_link "$cfg/nvim"        "$HOME/.config/nvim"
-    backup_and_link "$cfg/fastfetch"   "$HOME/.config/fastfetch"
-    backup_and_link "$cfg/gtk-3.0"     "$HOME/.config/gtk-3.0"
-    backup_and_link "$cfg/gtk-4.0"     "$HOME/.config/gtk-4.0"
-    backup_and_link "$cfg/Kvantum"     "$HOME/.config/Kvantum"
-    backup_and_link "$cfg/qt5ct"       "$HOME/.config/qt5ct"
-    backup_and_link "$cfg/qt6ct"       "$HOME/.config/qt6ct"
-    backup_and_link "$cfg/waypaper"    "$HOME/.config/waypaper"
-    backup_and_link "$cfg/zathura"     "$HOME/.config/zathura"
+    local d
+    for d in hypr waybar foot kitty wofi mako nvim fastfetch gtk-3.0 gtk-4.0 \
+             Kvantum qt5ct qt6ct waypaper zathura; do
+        backup_and_link "$cfg/$d" "$HOME/.config/$d"
+    done
 }
 
 deploy_local_bin() {
     print_header "Deploying ~/.local/bin scripts"
     mkdir -p "$HOME/.local/bin"
+    shopt -s nullglob
+    local script name
     for script in "$DOTFILES_DIR/local-bin/"*; do
-        local name
-        name=$(basename "$script")
-        chmod +x "$script"
+        name="$(basename "$script")"
+        chmod +x "$script"   # no-op when already +x in the repo (keeps git clean)
         backup_and_link "$script" "$HOME/.local/bin/$name"
     done
+    shopt -u nullglob
 }
 
 deploy_home_files() {
@@ -61,11 +73,35 @@ deploy_home_files() {
 deploy_wallpapers() {
     print_header "Setting up wallpapers"
     mkdir -p "$HOME/Pictures/Wallpapers"
-    if [[ ! -f "$HOME/Pictures/Wallpapers/moon.png" ]]; then
-        cp "$DOTFILES_DIR/Wallpapers/moon.png" "$HOME/Pictures/Wallpapers/moon.png"
-        print_ok "Sample wallpaper copied to ~/Pictures/Wallpapers/"
+    shopt -s nullglob
+    local wp name count=0
+    for wp in "$DOTFILES_DIR/Wallpapers/"*; do
+        name="$(basename "$wp")"
+        if [[ ! -e "$HOME/Pictures/Wallpapers/$name" ]]; then
+            cp "$wp" "$HOME/Pictures/Wallpapers/$name" && count=$((count + 1))
+        fi
+    done
+    shopt -u nullglob
+    print_ok "Wallpapers ready in ~/Pictures/Wallpapers/ ($count new)"
+}
+
+deploy_systemd_user() {
+    print_header "Deploying systemd user units"
+    local src="$DOTFILES_DIR/Configs/systemd/user"
+    [[ -d "$src" ]] || { print_warn "No systemd user units to deploy"; return 0; }
+    mkdir -p "$HOME/.config/systemd/user"
+    shopt -s nullglob
+    local unit name
+    for unit in "$src"/*; do
+        name="$(basename "$unit")"
+        backup_and_link "$unit" "$HOME/.config/systemd/user/$name"
+    done
+    shopt -u nullglob
+    systemctl --user daemon-reload 2>/dev/null || true
+    if systemctl --user enable --now wallpaper-rotate.timer 2>/dev/null; then
+        print_ok "wallpaper-rotate.timer enabled"
     else
-        print_ok "Wallpaper already exists, skipping"
+        print_warn "Could not enable wallpaper-rotate.timer now (it will start on next login)"
     fi
 }
 
@@ -73,9 +109,13 @@ deploy_greetd() {
     print_header "Configuring greetd"
     local cfg="$DOTFILES_DIR/system/greetd-config.toml"
     local dest="/etc/greetd/config.toml"
-    # Replace placeholder username with current user
     sudo mkdir -p /etc/greetd
-    sed "s/{{USER}}/$USER/g" "$cfg" | sudo tee "$dest" > /dev/null
+    if [[ -e "$dest" ]]; then
+        sudo cp "$dest" "${dest}.archscratch-bak.$(date +%Y%m%d-%H%M%S)" \
+            && print_warn "Backed up existing $dest"
+    fi
+    # Use | as the sed delimiter so a username never collides with the pattern.
+    sed "s|{{USER}}|$USER|g" "$cfg" | sudo tee "$dest" > /dev/null
     print_ok "greetd configured for user: $USER"
 }
 
@@ -84,6 +124,7 @@ main() {
     deploy_local_bin
     deploy_home_files
     deploy_wallpapers
+    deploy_systemd_user
     deploy_greetd
     print_ok "All dotfiles deployed"
     [[ -d "$BACKUP_DIR" ]] && print_warn "Backups saved to: $BACKUP_DIR"

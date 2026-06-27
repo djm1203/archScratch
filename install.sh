@@ -4,12 +4,49 @@
 #
 # Run this after a fresh Arch Linux install with base packages.
 
-set -e
+# Intentionally NOT using `set -e`: one failing step must not abort the whole
+# install (PR-2). Each step is run via run_step(), which records pass/fail and
+# prints a summary at the end.
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DOTFILES_DIR
 
 source "$DOTFILES_DIR/Scripts/global_fn.sh"
+
+# Make freshly-installed tools reachable for the rest of this run.
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+# Log everything to a file for post-mortem debugging (B-008).
+LOG="$HOME/archscratch-install-$(date +%Y%m%d-%H%M%S).log"
+exec > >(tee -a "$LOG") 2>&1
+
+# ─── Step runner ──────────────────────────────────────────────────────────────
+
+STEP_RESULTS=()
+
+run_step() {
+    local label="$1"; shift
+    print_header "▶ $label"
+    if "$@"; then
+        STEP_RESULTS+=("  [OK]   $label")
+    else
+        STEP_RESULTS+=("  [FAIL] $label")
+        print_err "Step failed: $label — continuing with the rest of the install."
+    fi
+}
+
+print_summary() {
+    print_header "Install summary"
+    local line
+    for line in "${STEP_RESULTS[@]}"; do
+        if [[ "$line" == *"[FAIL]"* ]]; then
+            echo -e "${RED}${line}${NC}"
+        else
+            echo -e "${GREEN}${line}${NC}"
+        fi
+    done
+    echo -e "\n  Full log: ${CYAN}$LOG${NC}"
+}
 
 # ─── Sanity checks ────────────────────────────────────────────────────────────
 
@@ -28,10 +65,15 @@ check_not_root() {
 }
 
 check_internet() {
-    if ! ping -c1 archlinux.org &>/dev/null; then
-        print_err "No internet connection detected."
-        exit 1
+    # ICMP is blocked on some networks, so fall back to an HTTPS HEAD request.
+    if ping -c1 archlinux.org &>/dev/null; then
+        return 0
     fi
+    if curl -fsI https://archlinux.org &>/dev/null; then
+        return 0
+    fi
+    print_err "No internet connection detected."
+    exit 1
 }
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -63,27 +105,29 @@ main() {
     fi
 
     # 1. Packages
-    bash "$DOTFILES_DIR/Scripts/pkg_install.sh"
+    run_step "Packages (pacman + AUR + drivers)" bash "$DOTFILES_DIR/Scripts/pkg_install.sh"
 
     # 2. Zsh + oh-my-zsh + p10k
-    bash "$DOTFILES_DIR/Scripts/install_zsh.sh"
+    run_step "Zsh / oh-my-zsh / powerlevel10k" bash "$DOTFILES_DIR/Scripts/install_zsh.sh"
 
     # 3. waybar-module-pomodoro (built from source)
-    bash "$DOTFILES_DIR/Scripts/install_pomodoro.sh"
+    run_step "waybar-module-pomodoro (source build)" bash "$DOTFILES_DIR/Scripts/install_pomodoro.sh"
 
     # 4. Git / GitHub SSH setup
-    bash "$DOTFILES_DIR/Scripts/install_git_accounts.sh"
+    run_step "Git / GitHub accounts" bash "$DOTFILES_DIR/Scripts/install_git_accounts.sh"
 
-    # 5. Claude Code
+    # 5. Claude Code (optional)
     if ask_yes_no "Install Claude Code CLI?"; then
-        bash "$DOTFILES_DIR/Scripts/install_claude.sh"
+        run_step "Claude Code CLI" bash "$DOTFILES_DIR/Scripts/install_claude.sh"
     fi
 
-    # 7. Deploy dotfiles
-    bash "$DOTFILES_DIR/Scripts/restore_cfg.sh"
+    # 6. Deploy dotfiles
+    run_step "Deploy dotfiles" bash "$DOTFILES_DIR/Scripts/restore_cfg.sh"
 
-    # 8. Enable services
-    bash "$DOTFILES_DIR/Scripts/restore_svc.sh"
+    # 7. Enable services
+    run_step "Enable systemd services" bash "$DOTFILES_DIR/Scripts/restore_svc.sh"
+
+    print_summary
 
     # 9. Done
     print_header "Installation complete!"

@@ -1,0 +1,21 @@
+/* archScratch - waypaper picker styling (Tokyo Night + Catppuccin accent) */
+window {
+    background-color: #1a1b26;
+    color: #c6d0f5;
+}
+
+button {
+    background-color: #1a1b26;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    margin: 4px;
+}
+
+button:hover {
+    border-color: #cba6f7;
+}
+
+button:checked {
+    border-color: #cba6f7;
+    background-color: rgba(203, 166, 247, 0.15);
+}

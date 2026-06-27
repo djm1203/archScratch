@@ -14,10 +14,11 @@ Personal Arch Linux dotfiles — Hyprland desktop setup. Clone and run one comma
 | Wallpaper       | swww + Waypaper               |
 | Lock / Idle     | Hyprlock + Hypridle           |
 | File Manager    | Dolphin                       |
-| Terminal        | Foot                          |
+| Terminal        | Foot (default) · Kitty (for a background image) |
 | Shell           | Zsh + oh-my-zsh + Powerlevel10k |
-| Editor          | Neovim (LazyVim)              |
-| Theme           | Tokyo Night / Catppuccin Mocha |
+| Editors         | Neovim (LazyVim) · VS Code    |
+| Dev tooling     | node, go, rust, ruby + rails, docker, lazygit, fzf, ripgrep, fd, bat, eza, jq, tmux, gdb, cmake |
+| Theme           | Tokyo Night / Catppuccin Mocha (mauve accent) |
 | Icons           | Papirus (breeze-dark)         |
 | Fonts           | JetBrains Mono Nerd, Inter    |
 
@@ -48,17 +49,38 @@ The script will:
 10. Enable systemd services
 11. Prompt to reboot
 
+> The installer is **resilient**: it does not abort on the first error. Each step is
+> tracked and a pass/fail summary is printed at the end, and a full log is written to
+> `~/archscratch-install-<timestamp>.log`. A single bad package no longer fails the batch.
+
 ## After Install
 
 - Run `p10k configure` on first zsh login to set up your prompt
 - Run `nwg-displays` to configure your monitor layout (resolution, scale, position)
-- `Super+W` opens the wallpaper picker — sample `moon.png` is included in `~/Pictures/Wallpapers/`
+- `Super+W` opens the wallpaper picker — sample `moon.png` is in `~/Pictures/Wallpapers/`
+- **Wallpapers auto-rotate** every 15 min via a systemd user timer (`wallpaper-rotate.timer`).
+  Drop more images into `Wallpapers/` (they deploy to `~/Pictures/Wallpapers/`).
+- **Terminal background image:** open Kitty with `Super+Shift+T` and place your image at
+  `~/.config/kitty/bg.png` (i.e. `Configs/kitty/bg.png` in the repo). Foot stays the default
+  terminal and uses transparency over the wallpaper instead.
+
+## Recoloring (changing the accent)
+
+The accent color (currently mauve `#cba6f7`) is centralized. To recolor the whole desktop,
+change it in these spots and reload:
+
+- `Configs/hypr/colors.conf` — `$accent` (window borders, lock screen)
+- `Configs/waybar/style.css` — `@define-color accent` (top of file)
+- `Configs/wofi/style.css` — `@define-color accent`
+- `Configs/mako/config` — `border-color`
+- `Configs/kitty/kitty.conf` / `Configs/foot/foot.ini` — palette (optional)
 
 ## Keybindings
 
 | Key                  | Action                  |
 |----------------------|-------------------------|
 | `Super+T`            | Terminal (foot)         |
+| `Super+Shift+T`      | Terminal (kitty, bg image) |
 | `Super+B`            | Browser (Firefox)       |
 | `Super+E`            | File manager (Dolphin)  |
 | `Super+R` / `A`      | App launcher (Wofi)     |
@@ -80,19 +102,25 @@ archScratch/
 ├── install.sh           # entry point
 ├── Scripts/
 │   ├── pkg_pacman.lst   # pacman packages
-│   ├── pkg_aur.lst      # AUR packages
+│   ├── pkg_aur.lst      # AUR packages (VS Code, spotify, …)
 │   ├── svc_enable.lst   # systemd services
+│   ├── global_fn.sh     # shared helpers (incl. resilient pac_install)
 │   ├── pkg_install.sh
 │   ├── restore_cfg.sh   # deploys dotfiles (symlinks)
 │   ├── restore_svc.sh
 │   ├── install_zsh.sh
 │   ├── install_pomodoro.sh
-│   └── install_claude.sh
+│   ├── install_git_accounts.sh
+│   ├── install_claude.sh
+│   └── emergency_pkg.sh # resilient recovery if pkg_install fails
 ├── Configs/             # all ~/.config/ files
-├── local-bin/           # scripts → ~/.local/bin/
+│   ├── hypr/colors.conf # central accent palette
+│   ├── kitty/           # terminal w/ background image
+│   └── systemd/user/    # wallpaper-rotate.{service,timer}
+├── local-bin/           # scripts → ~/.local/bin/ (incl. wallpaper-rotate)
 ├── home/                # home dotfiles (.zshrc)
 ├── system/              # system config (greetd)
-└── Wallpapers/          # sample wallpaper
+└── Wallpapers/          # wallpaper set (auto-rotated)
 ```
 
 ## Notes

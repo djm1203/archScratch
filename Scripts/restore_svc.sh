@@ -7,11 +7,16 @@ main() {
     print_header "Enabling systemd services"
     local lst="$DOTFILES_DIR/Scripts/svc_enable.lst"
 
-    while IFS= read -r svc; do
-        [[ "$svc" =~ ^#.*$ || -z "$svc" ]] && continue
-        sudo systemctl enable --now "$svc" 2>/dev/null \
-            && print_ok "Enabled: $svc" \
-            || print_warn "Could not enable: $svc (may not exist yet)"
+    local err
+    # `|| [[ -n "$svc" ]]` processes a final line that lacks a trailing newline.
+    while IFS= read -r svc || [[ -n "$svc" ]]; do
+        [[ "$svc" =~ ^[[:space:]]*# || -z "${svc//[[:space:]]/}" ]] && continue
+        if err=$(sudo systemctl enable --now "$svc" 2>&1); then
+            print_ok "Enabled: $svc"
+        else
+            # Surface the real reason instead of hiding it behind /dev/null.
+            print_warn "Could not enable $svc: ${err##*$'\n'}"
+        fi
     done < "$lst"
 }
 

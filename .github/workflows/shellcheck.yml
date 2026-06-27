@@ -1,0 +1,31 @@
+name: shellcheck
+
+# Lint all shell scripts on push/PR. This is the CI baseline (B-005); it does not
+# attempt a full Arch install (that needs a VM) but catches syntax/quoting bugs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check (bash -n)
+        run: |
+          set -e
+          for f in install.sh Scripts/*.sh local-bin/*; do
+            [ -f "$f" ] || continue
+            head -1 "$f" | grep -q 'bash\|sh' && bash -n "$f" && echo "ok: $f"
+          done
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          additional_files: 'wallpaper-rotate caffeine-status caffeine-toggle power-menu'
+        env:
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091

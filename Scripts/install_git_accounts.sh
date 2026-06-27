@@ -3,9 +3,19 @@
 
 source "$(dirname "$0")/global_fn.sh"
 
+backup_gitconfig() {
+    # Never clobber an existing git identity without keeping a copy.
+    local f="$1"
+    [[ -e "$f" ]] && cp "$f" "${f}.archscratch-bak.$(date +%Y%m%d-%H%M%S)" \
+        && print_warn "Backed up existing $f"
+}
+
 setup_single_account() {
     print_header "Git single-account setup"
     read -rp "$(echo -e "${YELLOW}  [?]${NC} GitHub email: ")" email
+
+    mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+    backup_gitconfig "$HOME/.gitconfig"
 
     cat > "$HOME/.gitconfig" <<EOF
 [user]
@@ -55,6 +65,8 @@ setup_multi_account() {
     mkdir -p "$HOME/Desktop/Quantum_Intelligence"
     mkdir -p "$HOME/Desktop/Personal"
     print_ok "Project directories created"
+
+    backup_gitconfig "$HOME/.gitconfig"
 
     # Write ~/.gitconfig
     cat > "$HOME/.gitconfig" <<EOF

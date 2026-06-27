@@ -57,6 +57,7 @@ bluez-utils
 # Network
 networkmanager
 network-manager-applet
+nm-connection-editor
 wireguard-tools
 whois
 
@@ -101,14 +102,23 @@ python-pip
 python-pipx
 go
 rustup
+ruby
+sqlite
 docker
 docker-compose
 lazydocker
-git
+lazygit
 github-cli
 azure-cli
 ripgrep
 fd
+fzf
+jq
+bat
+eza
+tmux
+gdb
+cmake
 
 # LaTeX (for nvim vimtex)
 texlive-basic

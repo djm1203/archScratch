@@ -1,6 +1,20 @@
+/* ───────────────────────────────────────────────────────────────────────
+   archScratch waybar theme
+   TO RECOLOR: change @accent below (and the matching values in
+   hypr/colors.conf, wofi/style.css, kitty/foot). Tokyo Night + Catppuccin.
+   ─────────────────────────────────────────────────────────────────────── */
+@define-color bg      #1a1b26;  /* module background        */
+@define-color hover   #292a35;  /* hover highlight          */
+@define-color text    #c6d0f5;  /* primary text             */
+@define-color subtext #babbf1;  /* secondary text           */
+@define-color accent  #cba6f7;  /* accent (mauve) ← recolor */
+@define-color green   #a6d189;  /* success / charging       */
+@define-color red     #e78284;  /* error / warning          */
+@define-color muted   #6c7086;  /* disabled / off state     */
+
 /* --- Global Styles --- */
 * {
-  font-family: 'SF Pro Text', 'Inter', 'Segoe UI, NotoSans Nerd Font', sans-serif;
+  font-family: 'Inter', 'JetBrainsMono Nerd Font', 'NotoSans Nerd Font', sans-serif;
   font-size: 13px;
   min-height: 0;
   padding-right: 0px;
@@ -11,7 +25,7 @@
 /* --- Waybar Container --- */
 #waybar {
   background: transparent;
-  color: #c6d0f5;
+  color: @text;
   margin: 0px;
   font-weight: 500;
 }
@@ -20,7 +34,7 @@
 #workspaces,
 #custom-uptime,
 #cpu {
-  background-color: #1a1b26;
+  background-color: @bg;
   padding: 0.3rem 0.7rem;
   margin: 5px 0px; /* 5px top/bottom margin, 0px left/right (base for individual control) */
   border-radius: 6px; /* These modules are always rounded */
@@ -44,11 +58,11 @@
 /* Simple Hover effects for individual left modules - BRIGHTER COLOR */
 #custom-uptime:hover,
 #cpu:hover {
-  background-color: rgb(41, 42, 53); /* Brighter highlight */
+  background-color: @hover; /* Brighter highlight */
 }
 
 #workspaces button {
-  color: #babbf1;
+  color: @subtext;
   border-radius: 5px; /* Workspaces buttons are always rounded */
   padding: 0.3rem 0.6rem;
   background: transparent;
@@ -58,23 +72,23 @@
 }
 
 #workspaces button.active {
-  color: #99d1db;
-  background-color: rgba(153, 209, 219, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(153, 209, 219, 0.2);
+  color: @accent;
+  background-color: alpha(@accent, 0.1);
+  box-shadow: inset 0 0 0 1px alpha(@accent, 0.2);
 }
 
 #workspaces button:hover {
-  background: rgb(41, 42, 53); /* Reference bright hover color */
-  color: #c6d0f5;
+  background: @hover; /* Reference bright hover color */
+  color: @text;
 }
 
 /* --- Center Module (Individual, Fully Rounded Block - With Simple Hover) --- */
 #clock {
-  background-color: #1a1b26;
+  background-color: @bg;
   padding: 0.3rem 0.7rem;
   margin: 5px 0px;
   border-radius: 6px; /* This module is always rounded */
-  box-shadow: 0 1px 3px rgba(153, 209, 219, 0.2);
+  box-shadow: 0 1px 3px alpha(@accent, 0.2);
   min-width: 0;
   border: none;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
@@ -82,11 +96,11 @@
 
 /* Simple Hover effect for clock module - BRIGHTER COLOR */
 #clock:hover {
-  background-color: rgba(153, 209, 219, 0.1); /* Brighter highlight */
+  background-color: alpha(@accent, 0.1); /* Brighter highlight */
 }
 
 #custom-pomodoro {
-    background-color: #1a1b26; /* Consistent dark background */
+    background-color: @bg; /* Consistent dark background */
     padding: 0.3rem 0.7rem; /* Consistent padding with other modules (e.g., cpu, uptime) */
     margin: 5px 0px; /* 5px top/bottom margin, 0px left/right (base for individual control) */
     border-radius: 6px; /* Consistent rounded corners with other individual modules */
@@ -96,7 +110,7 @@
     outline: none; /* Ensure no default outline */
     /* Transition for background-color, color, outline, and box-shadow for smooth effect */
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, outline 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    color: #babbf1; /* A calm color, consistent with custom-uptime */
+    color: @subtext; /* A calm color, consistent with custom-uptime */
     font-weight: 600; /* Slightly bolder for the timer, consistent with clock */
 }
 
@@ -108,8 +122,8 @@
 
 /* Hover effect for the new pomodoro module (consistent with others + rectangular outline) */
 #custom-pomodoro:hover {
-    background-color: rgb(41, 42, 53); /* Brighter highlight, consistent with other individual modules */
-    color: #c6d0f5; /* Text color change on hover, consistent with other individual modules */
+    background-color: @hover; /* Brighter highlight, consistent with other individual modules */
+    color: @text; /* Text color change on hover, consistent with other individual modules */
     outline: 1px solid rgba(255, 255, 255, 0.1); /* Rectangular outline on hover */
     outline-offset: -1px;
 }
@@ -117,32 +131,32 @@
 /* --- Highlighted state for Pomodoro module when running (work or break) --- */
 #custom-pomodoro.work,
 #custom-pomodoro.break {
-  color: #99d1db; /* Text color consistent with active workspaces button */
-  background-color: rgba(153, 209, 219, 0.1); /* Background color consistent with active workspaces button */
-  box-shadow: inset 0 0 0 1px rgba(153, 209, 219, 0.2); /* Inner shadow for outline effect */
+  color: @accent; /* Text color consistent with active workspaces button */
+  background-color: alpha(@accent, 0.1); /* Background color consistent with active workspaces button */
+  box-shadow: inset 0 0 0 1px alpha(@accent, 0.2); /* Inner shadow for outline effect */
   outline: none;
 }
 
 /* --- Caffeine module --- */
 #custom-caffeine {
-  background-color: #1a1b26;
+  background-color: @bg;
   padding: 0.3rem 0.7rem;
   margin: 5px 5px;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-size: 14px;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  color: #888888;
+  color: @muted;
 }
 
 #custom-caffeine:hover {
-  background-color: rgb(41, 42, 53);
+  background-color: @hover;
 }
 
 #custom-caffeine.on {
-  color: #a6d189;
-  background-color: rgba(166, 209, 137, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(166, 209, 137, 0.2);
+  color: @green;
+  background-color: alpha(@green, 0.1);
+  box-shadow: inset 0 0 0 1px alpha(@green, 0.2);
 }
 
 /* --- Right Modules (Single, Seamless Bar ) --- */
@@ -153,9 +167,9 @@
 #custom-lock,
 #battery,
 #custom-power {
-  background-color: #1a1b26;
+  background-color: @bg;
   padding: 0.3rem 0.7rem;
-  margin: 5px 0px; 
+  margin: 5px 0px;
   border-radius: 0;
   box-shadow: none;
   min-width: 0;
@@ -170,11 +184,11 @@
 #custom-lock:hover,
 #battery:hover,
 #custom-power:hover {
-  background-color: rgb(41, 42, 53);
+  background-color: @hover;
 }
 
 #bluetooth {
-  margin-left: 0px; 
+  margin-left: 0px;
   border-top-left-radius: 6px;
   border-bottom-left-radius: 6px;
 }
@@ -187,63 +201,63 @@
   border-top-right-radius: 6px;
   border-bottom-right-radius: 6px;
   margin-right: 7px;
-  color: #e78284;
+  color: @red;
 }
 
 #custom-uptime {
-  color: #babbf1;
+  color: @subtext;
 }
 #cpu {
-  color: #c6d0f5;
+  color: @text;
 }
 
 #clock {
-  color: #99d1db;
+  color: @accent;
   font-weight: 500;
 }
 
 #pulseaudio {
-  color: #c6d0f5;
+  color: @text;
 }
 #backlight {
-  color: #c6d0f5;
+  color: @text;
 }
 
 #network {
-  color: #c6d0f5;
+  color: @text;
 }
 
 #network.disconnected {
-  color: #e78284;
+  color: @red;
 }
 
 #custom-lock {
-  color: #babbf1;
+  color: @subtext;
 }
 #bluetooth {
-  color: #888888;
+  color: @muted;
   font-size: 16px;
 }
 #bluetooth.on {
-  color: #2196f3;
+  color: @accent;
 }
 #bluetooth.connected {
-  color: #99d1db;
+  color: @accent;
 }
 #battery {
-  color: #99d1db;;
+  color: @accent;
 }
 #battery.charging {
-  color: #a6d189;
+  color: @green;
 }
 #battery.warning:not(.charging) {
-  color: #e78284;
+  color: @red;
 }
 
 /* --- Tooltip Styles --- */
 tooltip {
-  background-color: #1a1b26;
-  color: #dddddd;
+  background-color: @bg;
+  color: @text;
   padding: 5px 12px;
   margin: 5px 0px;
   border-radius: 6px;
@@ -251,5 +265,3 @@ tooltip {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   font-size: 12px;
 }
-
-

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# archScratch - pick a random wallpaper and set it via swww.
+# Usage: wallpaper-rotate [WALLPAPER_DIR]   (default: ~/Pictures/Wallpapers)
+set -u
+
+DIR="${1:-$HOME/Pictures/Wallpapers}"
+
+command -v swww >/dev/null 2>&1 || { echo "wallpaper-rotate: swww not installed" >&2; exit 1; }
+
+# Make sure the swww daemon is running (it normally starts with Hyprland).
+if ! swww query >/dev/null 2>&1; then
+    swww-daemon >/dev/null 2>&1 &
+    sleep 1
+fi
+
+mapfile -t imgs < <(find "$DIR" -type f \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null)
+
+if [[ ${#imgs[@]} -eq 0 ]]; then
+    echo "wallpaper-rotate: no wallpapers found in $DIR" >&2
+    exit 1
+fi
+
+IMG="${imgs[RANDOM % ${#imgs[@]}]}"
+swww img "$IMG" --transition-type fade --transition-duration 2

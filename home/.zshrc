@@ -6,7 +6,16 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-export ZSH="$HOME/.oh-my-zsh"
+# oh-my-zsh: prefer the packaged copy (/usr/share, no curl|bash) with a writable
+# cache/custom; fall back to a user install at ~/.oh-my-zsh.
+if [[ -d /usr/share/oh-my-zsh ]]; then
+  export ZSH=/usr/share/oh-my-zsh
+  export ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh"
+  export ZSH_CUSTOM="$HOME/.config/oh-my-zsh-custom"
+  [[ -d $ZSH_CACHE_DIR/completions ]] || mkdir -p "$ZSH_CACHE_DIR/completions"
+else
+  export ZSH="$HOME/.oh-my-zsh"
+fi
 
 # Theme + autosuggestions/syntax-highlighting are loaded from the pacman packages
 # below (more robust than git clones), so leave ZSH_THEME empty and keep only the
@@ -14,7 +23,9 @@ export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=""
 plugins=(git)
 
-source $ZSH/oh-my-zsh.sh
+# Guarded so a missing oh-my-zsh never breaks the shell (p10k + plugins below
+# still load from /usr/share regardless).
+[[ -f $ZSH/oh-my-zsh.sh ]] && source $ZSH/oh-my-zsh.sh
 
 # ─── Powerlevel10k theme (pacman package, with git-clone fallback) ────────────
 if [[ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ]]; then

@@ -53,6 +53,21 @@ The script will:
 > tracked and a pass/fail summary is printed at the end, and a full log is written to
 > `~/archscratch-install-<timestamp>.log`. A single bad package no longer fails the batch.
 
+## Updating
+
+After the first install, pull changes and apply them with:
+
+```bash
+cd archScratch && ./install.sh --upgrade
+```
+
+This `git pull`s (auto-stashing any live edits to your symlinked configs), prints the
+commits it pulled (your "release notes"), installs any newly-listed packages, redeploys
+configs + services, and live-reloads Hyprland/Waybar. It skips the one-time setup
+(hardware/microcode/NVIDIA prompts, git accounts, shell change). Because configs are
+symlinked into the repo, a plain `git pull` already updates dotfiles instantly —
+`--upgrade` is for picking up new packages, services, and files.
+
 ## After Install
 
 - Run `p10k configure` on first zsh login to set up your prompt

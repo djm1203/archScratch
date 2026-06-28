@@ -224,7 +224,23 @@ prompt_nvidia() {
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
+upgrade() {
+    # Packages-only path for `install.sh --upgrade`: sync + install any newly
+    # listed packages/gems. No hardware prompts, kernel, or driver changes.
+    rank_mirrors
+    sudo pacman -Syu --noconfirm || true
+    install_pacman_packages
+    ensure_rust_toolchain
+    install_ruby_gems
+    install_aur_packages
+}
+
 main() {
+    if [[ "${1:-}" == "--upgrade" ]]; then
+        upgrade
+        return
+    fi
+
     # Ask about ASUS first — affects repo setup and package choices
     print_header "Hardware detection"
     if ask_yes_no "Is this an ASUS ROG/TUF laptop (needs G14 kernel + ASUS tools)?"; then

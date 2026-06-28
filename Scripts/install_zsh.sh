@@ -6,11 +6,20 @@ source "$(dirname "$0")/global_fn.sh"
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
 install_omz() {
+    # Prefer the AUR package (no curl|bash). It installs read-only to
+    # /usr/share/oh-my-zsh; .zshrc points ZSH there with writable cache/custom dirs.
+    if [[ -d /usr/share/oh-my-zsh ]]; then
+        print_ok "oh-my-zsh provided by package (oh-my-zsh-git)"
+        mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh/completions"
+        mkdir -p "$HOME/.config/oh-my-zsh-custom"
+        return
+    fi
     if [[ -d "$HOME/.oh-my-zsh" ]]; then
         print_ok "oh-my-zsh already installed"
         return
     fi
-    print_header "Installing oh-my-zsh"
+    # Fallback only if the AUR package didn't install (keeps install resilient).
+    print_warn "oh-my-zsh package missing — using upstream installer (curl) as fallback"
     RUNZSH=no CHSH=no sh -c \
         "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     print_ok "oh-my-zsh installed"

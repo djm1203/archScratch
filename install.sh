@@ -172,4 +172,66 @@ main() {
     fi
 }
 
-main "$@"
+# ─── Upgrade ──────────────────────────────────────────────────────────────────
+
+reload_session() {
+    print_header "Reloading live session"
+    if command -v hyprctl &>/dev/null && hyprctl version &>/dev/null 2>&1; then
+        hyprctl reload >/dev/null 2>&1 && print_ok "Hyprland reloaded"
+        pkill -SIGUSR2 waybar 2>/dev/null && print_ok "Waybar reloaded" || true
+        makoctl reload 2>/dev/null || true
+    else
+        print_warn "Not in a Hyprland session — changes apply on next login"
+    fi
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user restart wallpaper-rotate.timer 2>/dev/null || true
+}
+
+upgrade() {
+    echo -e "${BOLD}${CYAN}archScratch — upgrade${NC}\n"
+    check_arch
+    check_not_root
+    check_internet
+
+    print_header "Updating repo (git pull)"
+    local before after
+    before="$(git -C "$DOTFILES_DIR" rev-parse HEAD 2>/dev/null)"
+    # --autostash keeps any live edits to symlinked configs across the pull.
+    if git -C "$DOTFILES_DIR" pull --rebase --autostash; then
+        after="$(git -C "$DOTFILES_DIR" rev-parse HEAD 2>/dev/null)"
+        if [[ "$before" == "$after" ]]; then
+            print_ok "Already up to date."
+        else
+            print_header "Changes pulled (release notes)"
+            git -C "$DOTFILES_DIR" log --oneline --no-decorate "$before..$after"
+        fi
+    else
+        print_err "git pull failed — resolve manually, then re-run. Continuing with deploy."
+    fi
+
+    # Install any newly-listed packages, redeploy configs, enable new services.
+    # Skips the one-time interactive setup (hardware/microcode/NVIDIA/git/zsh).
+    run_step "Packages (sync + new)"   bash "$DOTFILES_DIR/Scripts/pkg_install.sh" --upgrade
+    run_step "Redeploy dotfiles"       bash "$DOTFILES_DIR/Scripts/restore_cfg.sh"
+    run_step "Enable systemd services" bash "$DOTFILES_DIR/Scripts/restore_svc.sh"
+    reload_session
+    verify_install
+    print_summary
+}
+
+usage() {
+    cat <<EOF
+Usage: ./install.sh [--upgrade|--help]
+
+  (no args)    Full first-time install on a fresh Arch base system.
+  --upgrade    Pull latest, install any new packages, redeploy configs +
+               services, and live-reload the session. Skips one-time setup.
+  --help       Show this help.
+EOF
+}
+
+case "${1:-}" in
+    --upgrade|upgrade) upgrade ;;
+    --help|-h)         usage ;;
+    *)                 main "$@" ;;
+esac

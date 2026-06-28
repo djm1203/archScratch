@@ -8,15 +8,20 @@ fi
 
 export ZSH="$HOME/.oh-my-zsh"
 
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-plugins=(
-  git
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-)
+# Theme + autosuggestions/syntax-highlighting are loaded from the pacman packages
+# below (more robust than git clones), so leave ZSH_THEME empty and keep only the
+# oh-my-zsh git plugin here.
+ZSH_THEME=""
+plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
+
+# ─── Powerlevel10k theme (pacman package, with git-clone fallback) ────────────
+if [[ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ]]; then
+  source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+elif [[ -f ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme ]]; then
+  source ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme
+fi
 
 export EDITOR='nvim'
 export VISUAL='nvim'
@@ -45,3 +50,15 @@ command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+# ─── zsh-autosuggestions (pacman package, with git-clone fallback) ───────────
+for _f in /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh \
+          ${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+  [[ -f $_f ]] && { source "$_f"; break; }
+done
+
+# ─── zsh-syntax-highlighting (MUST be sourced last) ──────────────────────────
+for _f in /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+          ${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  [[ -f $_f ]] && { source "$_f"; break; }
+done
+unset _f

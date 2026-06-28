@@ -87,6 +87,10 @@ change it in these spots and reload:
 | `Super+L`            | Lock screen             |
 | `Super+Escape`       | Power menu              |
 | `Super+W`            | Wallpaper picker        |
+| `Super+C`            | Clipboard history (cliphist) |
+| `Print`              | Screenshot full → file + clipboard |
+| `Shift+Print`        | Screenshot region → file + clipboard |
+| `Super+Shift+Print`  | Screenshot region → swappy (annotate) |
 | `Super+V`            | Toggle floating         |
 | `Super+Shift+C`      | Toggle caffeine (no sleep) |
 | `Super+[1-0]`        | Switch workspace        |

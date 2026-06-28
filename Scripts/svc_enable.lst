@@ -11,3 +11,8 @@ bluetooth
 docker
 greetd
 systemd-resolved
+# Auto-trim the pacman package cache weekly (pacman-contrib)
+paccache.timer
+# Refresh fastest mirrors weekly (reflector)
+reflector.timer
+# Note: ufw is configured + enabled with rules in restore_svc.sh (setup_firewall)

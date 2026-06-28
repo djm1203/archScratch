@@ -35,6 +35,22 @@ run_step() {
     fi
 }
 
+verify_install() {
+    print_header "Verifying key binaries"
+    local b missing=()
+    for b in hyprland waybar wofi swww mako foot kitty nvim code git docker ruby; do
+        if command -v "$b" &>/dev/null; then
+            print_ok "found: $b"
+        else
+            print_warn "MISSING: $b"
+            missing+=("$b")
+        fi
+    done
+    if ((${#missing[@]})); then
+        STEP_RESULTS+=("  [WARN] Missing binaries: ${missing[*]}")
+    fi
+}
+
 print_summary() {
     print_header "Install summary"
     local line
@@ -127,6 +143,7 @@ main() {
     # 7. Enable services
     run_step "Enable systemd services" bash "$DOTFILES_DIR/Scripts/restore_svc.sh"
 
+    verify_install
     print_summary
 
     # 9. Done

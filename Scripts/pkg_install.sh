@@ -119,10 +119,26 @@ ensure_rust_toolchain() {
     print_ok "Rust toolchain ready"
 }
 
+rank_mirrors() {
+    # Rank the fastest HTTPS mirrors before the big sync. reflector may not be on a
+    # fresh base yet (it's also in pkg_pacman.lst for future runs) — skip if absent.
+    command -v reflector &>/dev/null || { print_warn "reflector not installed yet — skipping mirror ranking"; return 0; }
+    print_header "Ranking pacman mirrors (reflector)"
+    if sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist; then
+        print_ok "Mirrorlist updated"
+    else
+        print_warn "reflector failed — keeping existing mirrorlist"
+    fi
+}
+
 install_ruby_gems() {
     # Rails ships as a gem, not a maintained Arch package. Install it (and Bundler)
     # as user gems; ~/.local gem bin is put on PATH in .zshrc.
     command -v gem &>/dev/null || { print_warn "gem not found — skipping Ruby on Rails"; return 0; }
+    if gem list -i rails &>/dev/null; then
+        print_ok "Rails already installed"
+        return 0
+    fi
     print_header "Installing Ruby gems (Rails, Bundler)"
     if gem install --user-install --no-document rails bundler; then
         print_ok "Rails + Bundler installed (user gems)"
@@ -216,6 +232,7 @@ main() {
         print_ok "ASUS mode enabled"
     fi
 
+    rank_mirrors           # fastest mirrors first (no-op if reflector not present yet)
     sudo pacman -Syu --noconfirm || true
     setup_asus_repo        # adds [g14] repo before any installs (no-op if not ASUS)
     install_yay

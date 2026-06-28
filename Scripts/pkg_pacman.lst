@@ -7,6 +7,9 @@ base-devel
 git
 sudo
 zsh
+zsh-theme-powerlevel10k
+zsh-autosuggestions
+zsh-syntax-highlighting
 curl
 openssh
 man-db
@@ -27,12 +30,15 @@ libnotify
 greetd
 xdg-desktop-portal
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
 xdg-user-dirs
 polkit-gnome
 polkit-kde-agent
 grim
 slurp
+swappy
 wl-clipboard
+cliphist
 qt5-wayland
 qt6-wayland
 qt5ct
@@ -41,6 +47,8 @@ kvantum
 nwg-displays
 brightnessctl
 playerctl
+swayosd
+udiskie
 
 # Audio (PipeWire)
 pipewire-alsa
@@ -81,6 +89,8 @@ obsidian
 torbrowser-launcher
 zathura
 zathura-pdf-mupdf
+mpv
+imv
 btop
 fastfetch
 xdot
@@ -132,6 +142,11 @@ texlive-latexrecommended
 # ASUS power management is handled by asusctl + power-profiles-daemon from [g14] repo
 powertop
 fwupd
+
+# System maintenance & security
+ufw
+reflector
+pacman-contrib
 
 # Microcode (pick one - handled by install script prompt)
 # intel-ucode

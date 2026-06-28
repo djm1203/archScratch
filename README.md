@@ -131,6 +131,7 @@ archScratch/
 │   ├── install_pomodoro.sh
 │   ├── install_git_accounts.sh
 │   ├── install_claude.sh
+│   ├── install_plymouth.sh # opt-in boot splash (Catppuccin)
 │   └── emergency_pkg.sh # resilient recovery if pkg_install fails
 ├── Configs/             # all ~/.config/ files
 │   ├── hypr/colors.conf # central accent palette

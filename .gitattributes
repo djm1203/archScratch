@@ -6,6 +6,8 @@
 *.toml      text eol=lf
 *.css       text eol=lf
 *.lst       text eol=lf
+*.txt       text eol=lf
+*.jsonc     text eol=lf
 .zshrc      text eol=lf
 .gitconfig  text eol=lf
 

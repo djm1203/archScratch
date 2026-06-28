@@ -1,11 +1,11 @@
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
   "logo": {
-    // Built-in Arch logo, tinted mauve to match the theme.
-    // Swap "arch" for any name from `fastfetch --list-logos` (e.g. arch_small, arch2).
-    "source": "arch",
-    "type": "builtin",
-    "color": { "1": "magenta", "2": "magenta" },
+    // Custom braille cat art in logo.txt (same folder, symlinked to ~/.config).
+    // Plain unicode (no ANSI), tinted mauve to match the theme.
+    "source": "~/.config/fastfetch/logo.txt",
+    "type": "file",
+    "color": { "1": "magenta" },
     "padding": { "top": 1, "right": 3 }
   },
   "display": {

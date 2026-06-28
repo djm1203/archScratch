@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# archScratch - screenshot helper (grim + slurp + swappy + wl-clipboard)
+# Usage: screenshot [full|region|edit]
+set -u
+
+DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$DIR"
+FILE="$DIR/$(date +%Y%m%d-%H%M%S).png"
+
+case "${1:-region}" in
+    full)
+        grim "$FILE" && wl-copy < "$FILE"
+        ;;
+    region)
+        geom="$(slurp)" || exit 1   # cancelled selection
+        grim -g "$geom" "$FILE" && wl-copy < "$FILE"
+        ;;
+    edit)
+        geom="$(slurp)" || exit 1
+        grim -g "$geom" - | swappy -f -   # swappy handles its own save
+        exit 0
+        ;;
+    *)
+        echo "usage: screenshot [full|region|edit]" >&2
+        exit 1
+        ;;
+esac
+
+if [[ -f "$FILE" ]]; then
+    command -v notify-send >/dev/null 2>&1 && notify-send "Screenshot" "Saved to $FILE"
+fi

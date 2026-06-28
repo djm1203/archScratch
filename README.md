@@ -143,6 +143,11 @@ archScratch/
 └── Wallpapers/          # wallpaper set (auto-rotated)
 ```
 
+## Extending
+
+Adding your own apps, configs, wallpapers, services, or keybinds is a quick edit — see
+[docs/EXTENDING.md](docs/EXTENDING.md) for the how-to.
+
 ## Notes
 
 - `monitors.conf` defaults to `monitor=,preferred,auto,1` (auto-detect all displays). Use `nwg-displays` to generate a proper config after logging in.

@@ -12,14 +12,15 @@ backup_gitconfig() {
 
 setup_single_account() {
     print_header "Git single-account setup"
-    read -rp "$(echo -e "${YELLOW}  [?]${NC} GitHub email: ")" email
+    local email
+    email="$(ask_default "GitHub email" "derekmartinez1203@gmail.com")"
 
     mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
     backup_gitconfig "$HOME/.gitconfig"
 
     cat > "$HOME/.gitconfig" <<EOF
 [user]
-    name = Derek Martinez
+    name = $GIT_NAME
     email = $email
 
 [init]
@@ -40,8 +41,9 @@ EOF
 setup_multi_account() {
     print_header "Git multi-account setup (work + personal)"
 
+    local work_email personal_email
     read -rp "$(echo -e "${YELLOW}  [?]${NC} Work GitHub email: ")" work_email
-    read -rp "$(echo -e "${YELLOW}  [?]${NC} Personal GitHub email: ")" personal_email
+    personal_email="$(ask_default "Personal GitHub email" "derekmartinez1203@gmail.com")"
 
     # Generate SSH keypairs
     mkdir -p "$HOME/.ssh"
@@ -71,7 +73,7 @@ setup_multi_account() {
     # Write ~/.gitconfig
     cat > "$HOME/.gitconfig" <<EOF
 [user]
-    name = Derek Martinez
+    name = $GIT_NAME
 
 [init]
     defaultBranch = main
@@ -126,6 +128,9 @@ EOF
 
 main() {
     print_header "Git / GitHub setup"
+
+    # Git identity name (prompted, defaults to the repo owner).
+    GIT_NAME="$(ask_default "Your git name" "Derek Martinez")"
 
     if ask_yes_no "Set up multi-account GitHub (work + personal)?"; then
         setup_multi_account

@@ -53,6 +53,14 @@ pac_install() {
     return 0
 }
 
+# Prompt for a value with a default (Enter accepts the default). The prompt goes
+# to stderr so the chosen value can be captured with: x=$(ask_default "..." "def")
+ask_default() {
+    local prompt="$1" default="$2" ans
+    read -rp "$(echo -e "${YELLOW}  [?]${NC} ${prompt} [${default}]: ")" ans
+    echo "${ans:-$default}"
+}
+
 ask_yes_no() {
     local prompt="$1"
     local default="${2:-n}"

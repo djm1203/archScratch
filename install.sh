@@ -137,6 +137,11 @@ main() {
         run_step "Claude Code CLI" bash "$DOTFILES_DIR/Scripts/install_claude.sh"
     fi
 
+    # 5b. Plymouth boot splash (optional — edits boot config)
+    if ask_yes_no "Set up Plymouth boot splash? (edits mkinitcpio + kernel cmdline)"; then
+        run_step "Plymouth boot splash" bash "$DOTFILES_DIR/Scripts/install_plymouth.sh" --yes
+    fi
+
     # 6. Deploy dotfiles
     run_step "Deploy dotfiles" bash "$DOTFILES_DIR/Scripts/restore_cfg.sh"
 

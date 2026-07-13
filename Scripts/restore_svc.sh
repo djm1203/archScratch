@@ -42,10 +42,25 @@ setup_resolved() {
     print_ok "systemd-resolved DNS configured"
 }
 
+setup_docker_group() {
+    # Let the user run docker without sudo. Takes effect on next login.
+    getent group docker >/dev/null || return 0
+    if id -nG "$USER" | grep -qw docker; then
+        print_ok "User already in docker group"
+        return 0
+    fi
+    if sudo usermod -aG docker "$USER"; then
+        print_ok "Added $USER to docker group (log out/in to take effect)"
+    else
+        print_warn "Could not add $USER to docker group"
+    fi
+}
+
 main() {
     enable_services
     setup_firewall
     setup_resolved
+    setup_docker_group
 }
 
 main "$@"

@@ -38,8 +38,8 @@ export EDITOR='nvim'
 export VISUAL='nvim'
 
 # ─── PATH ──────────────────────────────────────────────────────────────────
-# User scripts (archScratch local-bin) + cargo + ruby user gems.
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+# User scripts (archScratch local-bin) + cargo + go + ruby user gems.
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/go/bin:$PATH"
 if command -v ruby >/dev/null 2>&1; then
   export PATH="$(ruby -e 'print Gem.user_dir' 2>/dev/null)/bin:$PATH"
 fi

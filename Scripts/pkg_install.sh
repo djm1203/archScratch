@@ -147,6 +147,19 @@ install_ruby_gems() {
     fi
 }
 
+configure_npm() {
+    # Point npm's global prefix at ~/.local so `npm i -g` works without sudo
+    # (~/.local/bin is already on PATH via .zshrc).
+    command -v npm &>/dev/null || return 0
+    if [[ "$(npm config get prefix 2>/dev/null)" == "$HOME/.local" ]]; then
+        print_ok "npm prefix already set to ~/.local"
+        return 0
+    fi
+    npm config set prefix "$HOME/.local" \
+        && print_ok "npm global prefix → ~/.local (no sudo needed for npm -g)" \
+        || print_warn "Could not set npm prefix"
+}
+
 install_pacman_packages() {
     print_header "Installing pacman packages"
     local lst="$DOTFILES_DIR/Scripts/pkg_pacman.lst"
@@ -230,6 +243,7 @@ upgrade() {
     rank_mirrors
     sudo pacman -Syu --noconfirm || true
     install_pacman_packages
+    configure_npm
     ensure_rust_toolchain
     install_ruby_gems
     install_aur_packages
@@ -253,6 +267,7 @@ main() {
     setup_asus_repo        # adds [g14] repo before any installs (no-op if not ASUS)
     install_yay
     install_pacman_packages
+    configure_npm
     ensure_rust_toolchain
     install_ruby_gems
     install_aur_packages

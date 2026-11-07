@@ -18,6 +18,7 @@ if [[ "$name" == "--init" ]]; then
     name="$(cat "$T/current" 2>/dev/null || echo gruvbox)"
 elif [[ -z "$name" ]]; then
     name="$(find "$T/palettes" -name '*.env' -printf '%f\n' | sed 's/\.env$//' | sort | wofi --dmenu -p theme)" || exit 0
+    [[ -n "$name" ]] || exit 0
 fi
 
 [[ -f "$T/palettes/$name.env" ]] || {
@@ -30,7 +31,7 @@ set -a; . "$T/palettes/$name.env"; set +a
 
 while read -r tpl dest; do
     mkdir -p "$(dirname "$C/$dest")"
-    envsubst "$VARS" < "$T/templates/$tpl" > "$C/$dest"
+    envsubst "$VARS" < "$T/templates/$tpl" > "$C/$dest.tmp" && mv "$C/$dest.tmp" "$C/$dest"
 done <<'MAP'
 hypr.conf hypr/colors.conf
 waybar.css waybar/colors.css

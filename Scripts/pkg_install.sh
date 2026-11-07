@@ -197,7 +197,11 @@ prompt_microcode() {
     echo -e "  1) Intel"
     echo -e "  2) AMD"
     echo -e "  3) Skip"
-    read -rp "$(echo -e "${YELLOW}  [?]${NC} Choice [1/2/3]: ")" choice
+    local ucode_default=3
+    grep -qi 'GenuineIntel' /proc/cpuinfo 2>/dev/null && ucode_default=1
+    grep -qi 'AuthenticAMD' /proc/cpuinfo 2>/dev/null && ucode_default=2
+    read -rp "$(echo -e "${YELLOW}  [?]${NC} Choice [1/2/3, Enter = $ucode_default]: ")" choice
+    choice="${choice:-$ucode_default}"
     case "$choice" in
         1) sudo pacman -S --needed --noconfirm intel-ucode && print_ok "intel-ucode installed" ;;
         2) sudo pacman -S --needed --noconfirm amd-ucode  && print_ok "amd-ucode installed"   ;;
@@ -252,7 +256,8 @@ install_thinkpad_tools() {
     print_header "Installing ThinkPad tools"
     # No power-profiles-daemon here: it conflicts with tlp. Services are enabled
     # by restore_svc.sh; intel-ucode comes from the microcode prompt.
-    pac_install tlp thermald intel-media-driver && print_ok "ThinkPad tools installed"
+    # throttled: fixes T480 CPU power-limit throttling. NOT thermald: it can fight throttled.
+    pac_install tlp throttled intel-media-driver vulkan-intel libva-utils bolt && print_ok "ThinkPad tools installed"
 }
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -278,9 +283,12 @@ main() {
     # Ask about ASUS first — affects repo setup and package choices
     print_header "Hardware detection"
     echo -e "  1) ASUS ROG/TUF (G14 kernel + ASUS tools)"
-    echo -e "  2) ThinkPad (tlp + thermald)"
+    echo -e "  2) ThinkPad (tlp + throttled)"
     echo -e "  3) Other"
-    read -rp "$(echo -e "${YELLOW}  [?]${NC} Hardware profile [1/2/3]: ")" hw
+    local hw_default=3
+    grep -qi thinkpad /sys/class/dmi/id/product_family /sys/class/dmi/id/product_version 2>/dev/null && hw_default=2
+    read -rp "$(echo -e "${YELLOW}  [?]${NC} Hardware profile [1/2/3, Enter = $hw_default]: ")" hw
+    hw="${hw:-$hw_default}"
     case "$hw" in
         1) ASUS_LAPTOP=true; print_ok "ASUS mode enabled" ;;
         2) THINKPAD=true;    print_ok "ThinkPad mode enabled" ;;

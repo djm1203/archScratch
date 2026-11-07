@@ -13,6 +13,10 @@ enable_services() {
         [[ "$svc" =~ ^[[:space:]]*# || -z "${svc//[[:space:]]/}" ]] && continue
         # greetd is enabled but NOT started: --now would kill the installer's TTY.
         now="--now"; [[ "$svc" == greetd ]] && now=""
+        # Don't restart networking out from under the installer if iwd/networkd manages it.
+        if [[ "$svc" == NetworkManager ]] && { systemctl is-active --quiet iwd || systemctl is-active --quiet systemd-networkd; }; then
+            now=""; print_warn "iwd/systemd-networkd is active: enabling NetworkManager for next boot only"
+        fi
         if err=$(sudo systemctl enable $now "$svc" 2>&1); then
             print_ok "Enabled: $svc"
         else
@@ -22,7 +26,11 @@ enable_services() {
     done < "$lst"
 
     # ThinkPad profile services: only when pkg_install.sh installed them.
-    for svc in tlp thermald; do
+    if pacman -Qq tlp &>/dev/null; then
+        # tlp manages radios itself; the systemd units fight it.
+        sudo systemctl mask systemd-rfkill.service systemd-rfkill.socket >/dev/null 2>&1
+    fi
+    for svc in tlp throttled; do
         if pacman -Qq "$svc" &>/dev/null; then
             sudo systemctl enable --now "$svc.service" && print_ok "Enabled: $svc"
         fi

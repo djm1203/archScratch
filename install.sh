@@ -138,6 +138,10 @@ main() {
         exit 0
     fi
 
+    # Keep the sudo timestamp fresh so long pacman/yay steps never stall on a password prompt.
+    sudo -v || exit 1
+    ( while kill -0 $$ 2>/dev/null; do sudo -n true; sleep 50; done ) &
+
     # 1. Packages
     run_step "Packages (pacman + AUR + drivers)" bash "$DOTFILES_DIR/Scripts/pkg_install.sh"
 
@@ -153,6 +157,13 @@ main() {
     # 5. Claude Code (optional)
     if ask_yes_no "Install Claude Code CLI?" "y"; then
         run_step "Claude Code CLI" bash "$DOTFILES_DIR/Scripts/install_claude.sh"
+    fi
+
+    # 5a. Fingerprint reader (optional — only offered when a supported reader is detected)
+    if lsusb 2>/dev/null | grep -qiE '06cb:(009a|00bd)'; then
+        if ask_yes_no "Fingerprint reader detected. Install its drivers? (does not touch PAM)"; then
+            run_step "Fingerprint reader" bash "$DOTFILES_DIR/Scripts/install_fingerprint.sh"
+        fi
     fi
 
     # 5b. Plymouth boot splash (optional — edits boot config)

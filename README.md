@@ -7,7 +7,7 @@ Personal Arch Linux dotfiles — Hyprland desktop setup. Clone and run one comma
 | Component       | Package                        |
 |-----------------|-------------------------------|
 | Compositor      | Hyprland                      |
-| Display Manager | greetd + agreety              |
+| Display Manager | greetd + tuigreet              |
 | Bar             | Waybar                        |
 | App Launcher    | Wofi                          |
 | Notifications   | Mako                          |
@@ -72,7 +72,8 @@ symlinked into the repo, a plain `git pull` already updates dotfiles instantly �
 
 - Run `p10k configure` on first zsh login to set up your prompt
 - Run `nwg-displays` to configure your monitor layout (resolution, scale, position)
-- `Super+W` opens the wallpaper picker — Gruvbox wallpapers are in `~/Pictures/Wallpapers/`
+- `Super+W` opens the wallpaper picker. Wallpapers live in `~/Pictures/Wallpapers/` — theme-specific
+  ones go in `~/Pictures/Wallpapers/<theme>/` (e.g. `gruvbox/`); none ship in the repo, add your own
 - **Wallpapers auto-rotate** every 15 min via a systemd user timer (`wallpaper-rotate.timer`).
   Drop more images into `Wallpapers/` (they deploy to `~/Pictures/Wallpapers/`).
 - **Terminal background image:** open Kitty with `Super+Shift+T` and place your image at
@@ -99,6 +100,8 @@ theme. GTK/Qt stay on Gruvbox, and Neovim keeps LazyVim's own colorscheme.
 | `Super+L`            | Lock screen             |
 | `Super+Escape`       | Power menu              |
 | `Super+W`            | Wallpaper picker        |
+| `Super+Shift+W`      | Switch color theme      |
+| `Super+Shift+P`      | Color picker (hyprpicker) |
 | `Super+C`            | Clipboard history (cliphist) |
 | `Print`              | Screenshot full → file + clipboard |
 | `Shift+Print`        | Screenshot region → file + clipboard |
@@ -129,9 +132,10 @@ archScratch/
 │   ├── install_git_accounts.sh
 │   ├── install_claude.sh
 │   ├── install_plymouth.sh # opt-in boot splash (Gruvbox)
+│   ├── install_fingerprint.sh / fingerprint_pam.sh # opt-in fingerprint reader (never auto-edits PAM)
 │   └── emergency_pkg.sh # resilient recovery if pkg_install fails
 ├── Configs/             # all ~/.config/ files
-│   ├── hypr/colors.conf # central accent palette
+│   ├── theme/           # palettes/*.env + templates (generated colors: see theme-switch)
 │   ├── kitty/           # terminal w/ background image
 │   └── systemd/user/    # wallpaper-rotate.{service,timer}
 ├── local-bin/           # scripts → ~/.local/bin/ (incl. wallpaper-rotate)
@@ -139,6 +143,20 @@ archScratch/
 ├── system/              # system config (greetd)
 └── Wallpapers/          # wallpaper set (auto-rotated)
 ```
+
+## ThinkPad (T480)
+
+Choose "ThinkPad" at the hardware prompt. You get `tlp` (battery held at 75-80%, both batteries),
+`throttled` (fixes the T480's CPU power-limit throttling; check with `sudo throttled --monitor`),
+Intel video acceleration, `bolt` for Thunderbolt docks, a faster touchpad poll rate (after reboot),
+and TrackPoint middle-button scrolling. `thermald` is deliberately not installed (it can fight
+`throttled`). Run `hyprctl devices` once and correct the TrackPoint name in
+`Scripts/restore_cfg.sh` if it differs. In the BIOS, pick the Linux/S3 sleep mode if offered.
+
+**Fingerprint:** the T480 reader (06cb:009a) is not supported by stock Arch packages yet, so the
+installer uses the AUR `python-validity` + `open-fprintd` stack. After install: `fprintd-enroll`,
+`fprintd-verify`, then `bash Scripts/fingerprint_pam.sh` to enable it for `sudo` (password remains
+the fallback; undo with `--undo`). It is intentionally not used at login (it can't unlock the keyring).
 
 ## Extending
 

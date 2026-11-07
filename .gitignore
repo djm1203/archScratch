@@ -31,3 +31,6 @@ Configs/wofi/colors.css
 Configs/mako/colors
 Configs/kitty/theme.conf
 Configs/foot/theme.ini
+
+# Local-only wallpapers (source repo is unlicensed) — add your own images here
+Wallpapers/gruvbox/

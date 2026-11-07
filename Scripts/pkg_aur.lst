@@ -1,8 +1,14 @@
 # archScratch - AUR package list
 # Installed via yay
 
-kvantum-theme-catppuccin-git
-catppuccin-gtk-theme-mocha
+# Theme (Gruvbox)
+gruvbox-dark-gtk
+gruvbox-plus-icon-theme
+
+# Wallpaper (awww itself is in [extra]; waypaper + mpvpaper are AUR)
+waypaper
+mpvpaper
+
 oh-my-zsh-git
 spotify
 visual-studio-code-bin

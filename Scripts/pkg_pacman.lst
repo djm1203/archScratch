@@ -7,7 +7,6 @@ base-devel
 git
 sudo
 zsh
-zsh-theme-powerlevel10k
 zsh-autosuggestions
 zsh-syntax-highlighting
 curl
@@ -16,6 +15,8 @@ man-db
 man-pages
 unzip
 acpi
+gettext
+usbutils
 
 # Hyprland / Wayland desktop
 hyprland
@@ -23,8 +24,7 @@ hypridle
 hyprlock
 waybar
 wofi
-swww
-waypaper
+awww
 mako
 libnotify
 greetd
@@ -33,7 +33,6 @@ xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 xdg-user-dirs
 polkit-gnome
-polkit-kde-agent
 grim
 slurp
 swappy
@@ -43,8 +42,12 @@ qt5-wayland
 qt6-wayland
 qt5ct
 qt6ct
-kvantum
 nwg-displays
+nwg-look
+hyprpicker
+hyprshutdown
+hyprsunset
+greetd-tuigreet
 brightnessctl
 playerctl
 swayosd
@@ -65,6 +68,9 @@ bluez-utils
 # Network
 networkmanager
 network-manager-applet
+proton-vpn-gtk-app
+proton-vpn-cli
+libayatana-appindicator
 nm-connection-editor
 wireguard-tools
 whois
@@ -103,7 +109,6 @@ gnome-control-center
 gnome-keyring
 gnome-online-accounts
 breeze
-papirus-icon-theme
 perl-image-exiftool
 
 # Dev tools
@@ -131,6 +136,35 @@ eza
 tmux
 gdb
 cmake
+clang
+lldb
+ninja
+valgrind
+nasm
+tree-sitter-cli
+
+# Languages & runtimes
+dotnet-sdk
+aspnet-runtime
+php
+composer
+yarn
+rbenv
+ruby-build
+
+# Build libs & databases
+libyaml
+openssl
+libffi
+zlib
+postgresql-libs
+postgresql
+valkey
+
+# CLI quality-of-life
+zoxide
+git-delta
+yazi
 
 # LaTeX (for nvim vimtex)
 texlive-basic
@@ -144,6 +178,7 @@ texlive-latexrecommended
 # ASUS power management is handled by asusctl + power-profiles-daemon from [g14] repo
 powertop
 fwupd
+zram-generator
 
 # System maintenance & security
 ufw

@@ -27,5 +27,6 @@ jobs:
         with:
           severity: warning
           additional_files: 'wallpaper-rotate caffeine-status caffeine-toggle power-menu'
+          ignore_paths: home   # .zshrc is zsh; shellcheck doesn't support zsh
         env:
           SHELLCHECK_OPTS: -e SC1090 -e SC1091

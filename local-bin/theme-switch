@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# archScratch - switch the desktop color theme.
+# Usage: theme-switch [name]   (no name: pick from a wofi menu)
+#        theme-switch --init   (regenerate the current theme's files, no reloads)
+# Palettes: Configs/theme/palettes/*.env  Templates: Configs/theme/templates/*
+set -euo pipefail
+
+C="${XDG_CONFIG_HOME:-$HOME/.config}"
+T="$C/theme"
+VARS='${BG} ${SURFACE} ${SURFACE2} ${FG} ${SUBTEXT} ${MUTED} ${RED} ${GREEN} ${YELLOW} ${BLUE} ${PURPLE} ${AQUA} ${ORANGE} ${ACCENT}'
+
+command -v envsubst >/dev/null || { echo "theme-switch: envsubst (gettext) not installed" >&2; exit 1; }
+
+name="${1:-}"
+init=false
+if [[ "$name" == "--init" ]]; then
+    init=true
+    name="$(cat "$T/current" 2>/dev/null || echo gruvbox)"
+elif [[ -z "$name" ]]; then
+    name="$(find "$T/palettes" -name '*.env' -printf '%f\n' | sed 's/\.env$//' | sort | wofi --dmenu -p theme)" || exit 0
+    [[ -n "$name" ]] || exit 0
+fi
+
+[[ -f "$T/palettes/$name.env" ]] || {
+    echo "theme-switch: unknown theme '$name' (have: $(find "$T/palettes" -name '*.env' -printf '%f ' | sed 's/\.env//g'))" >&2
+    exit 1
+}
+
+# Palettes are trusted local files in this repo.
+set -a; . "$T/palettes/$name.env"; set +a
+
+while read -r tpl dest; do
+    mkdir -p "$(dirname "$C/$dest")"
+    envsubst "$VARS" < "$T/templates/$tpl" > "$C/$dest.tmp" && mv "$C/$dest.tmp" "$C/$dest"
+done <<'MAP'
+hypr.conf hypr/colors.conf
+hypr.lua hypr/colors.lua
+waybar.css waybar/colors.css
+wofi.css wofi/colors.css
+mako mako/colors
+kitty.conf kitty/theme.conf
+foot.ini foot/theme.ini
+MAP
+
+echo "$name" > "$T/current"
+$init && exit 0
+
+# Live reload (each is a no-op if that app isn't running). foot/wofi pick it up on next launch.
+hyprctl reload >/dev/null 2>&1 || true
+pkill -SIGUSR2 -x waybar || true
+makoctl reload >/dev/null 2>&1 || true
+pkill -USR1 -x kitty || true
+
+# Theme-matched wallpapers: ~/Pictures/Wallpapers/<theme>/ if it exists.
+if [[ -d "$HOME/Pictures/Wallpapers/$name" ]]; then
+    wallpaper-rotate "$HOME/Pictures/Wallpapers/$name" || true
+fi
+command -v notify-send >/dev/null && notify-send "Theme" "$name" || true

@@ -26,7 +26,7 @@ setup_single_account() {
 [init]
     defaultBranch = main
 EOF
-    print_ok "~/.gitconfig written"
+    print_ok "$HOME/.gitconfig written"
 
     if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
         ssh-keygen -t ed25519 -C "$email" -f "$HOME/.ssh/id_ed25519" -N ""
@@ -84,7 +84,7 @@ setup_multi_account() {
 [includeIf "gitdir:~/Desktop/Personal/"]
     path = ~/.gitconfig-personal
 EOF
-    print_ok "~/.gitconfig written"
+    print_ok "$HOME/.gitconfig written"
 
     # Write ~/.gitconfig-work
     cat > "$HOME/.gitconfig-work" <<EOF
@@ -94,7 +94,7 @@ EOF
 [core]
     sshCommand = ssh -i ~/.ssh/id_ed25519_work
 EOF
-    print_ok "~/.gitconfig-work written"
+    print_ok "$HOME/.gitconfig-work written"
 
     # Write ~/.gitconfig-personal
     cat > "$HOME/.gitconfig-personal" <<EOF
@@ -104,7 +104,7 @@ EOF
 [core]
     sshCommand = ssh -i ~/.ssh/id_ed25519_personal
 EOF
-    print_ok "~/.gitconfig-personal written"
+    print_ok "$HOME/.gitconfig-personal written"
 
     # Save keys to file so they're accessible after reboot into Hyprland
     cat > "$HOME/github-keys.txt" <<EOF

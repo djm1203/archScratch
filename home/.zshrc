@@ -37,6 +37,11 @@ fi
 export EDITOR='nvim'
 export VISUAL='nvim'
 
+# Gruvbox dark for bat / fzf
+export BAT_THEME=gruvbox-dark
+export FZF_DEFAULT_OPTS="--color=bg+:#3c3836,bg:#1d2021,spinner:#8ec07c,hl:#fb4934,fg:#ebdbb2,header:#928374,info:#fabd2f,pointer:#fe8019,marker:#b8bb26,fg+:#ebdbb2,prompt:#fe8019,hl+:#fb4934"
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+
 # ─── PATH ──────────────────────────────────────────────────────────────────
 # User scripts (archScratch local-bin) + cargo + go + ruby user gems.
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/go/bin:$PATH"

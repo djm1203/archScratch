@@ -2,5 +2,5 @@
 vt = 1
 
 [default_session]
-command = "agreety --cmd Hyprland"
-user = "{{USER}}"
+command = "tuigreet --time --remember --remember-session --asterisks --cmd start-hyprland --theme 'border=yellow;text=white;prompt=green;time=yellow;action=blue;button=yellow;container=black;input=white'"
+user = "greeter"

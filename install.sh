@@ -16,6 +16,24 @@ source "$DOTFILES_DIR/Scripts/global_fn.sh"
 # Make freshly-installed tools reachable for the rest of this run.
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
+usage() {
+    cat <<EOF
+Usage: ./install.sh [--upgrade|--help]
+
+  (no args)    Full first-time install on a fresh Arch base system.
+  --upgrade    Pull latest, install any new packages, redeploy configs +
+               services, and live-reload the session. Skips one-time setup.
+  --help       Show this help.
+EOF
+}
+
+# Handle --help / bad args before the log + tee are set up.
+case "${1:-}" in
+    --help|-h)               usage; exit 0 ;;
+    ""|--upgrade|upgrade)    ;;
+    *)                       usage >&2; exit 2 ;;
+esac
+
 # Log everything to a file for post-mortem debugging (B-008).
 LOG="$HOME/archscratch-install-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
@@ -38,7 +56,7 @@ run_step() {
 verify_install() {
     print_header "Verifying key binaries"
     local b missing=()
-    for b in hyprland waybar wofi swww mako foot kitty nvim code git docker ruby; do
+    for b in hyprland waybar wofi awww mako foot kitty nvim code git docker ruby; do
         if command -v "$b" &>/dev/null; then
             print_ok "found: $b"
         else
@@ -112,13 +130,17 @@ main() {
 
     print_header "Starting installation"
     echo -e "  Dotfiles dir: ${CYAN}$DOTFILES_DIR${NC}"
-    echo -e "  User: ${CYAN}$USER${NC}"
+    echo -e "  User: ${CYAN}$(id -un)${NC}"
     echo ""
 
     if ! ask_yes_no "Ready to install? This will install packages and deploy configs." "y"; then
         echo "Aborted."
         exit 0
     fi
+
+    # Keep the sudo timestamp fresh so long pacman/yay steps never stall on a password prompt.
+    sudo -v || exit 1
+    ( while kill -0 $$ 2>/dev/null; do sudo -n true; sleep 50; done ) &
 
     # 1. Packages
     run_step "Packages (pacman + AUR + drivers)" bash "$DOTFILES_DIR/Scripts/pkg_install.sh"
@@ -133,8 +155,15 @@ main() {
     run_step "Git / GitHub accounts" bash "$DOTFILES_DIR/Scripts/install_git_accounts.sh"
 
     # 5. Claude Code (optional)
-    if ask_yes_no "Install Claude Code CLI?"; then
+    if ask_yes_no "Install Claude Code CLI?" "y"; then
         run_step "Claude Code CLI" bash "$DOTFILES_DIR/Scripts/install_claude.sh"
+    fi
+
+    # 5a. Fingerprint reader (optional — only offered when a supported reader is detected)
+    if lsusb 2>/dev/null | grep -qiE '06cb:(009a|00bd)'; then
+        if ask_yes_no "Fingerprint reader detected. Install its drivers? (does not touch PAM)"; then
+            run_step "Fingerprint reader" bash "$DOTFILES_DIR/Scripts/install_fingerprint.sh"
+        fi
     fi
 
     # 5b. Plymouth boot splash (optional — edits boot config)
@@ -224,19 +253,7 @@ upgrade() {
     print_summary
 }
 
-usage() {
-    cat <<EOF
-Usage: ./install.sh [--upgrade|--help]
-
-  (no args)    Full first-time install on a fresh Arch base system.
-  --upgrade    Pull latest, install any new packages, redeploy configs +
-               services, and live-reload the session. Skips one-time setup.
-  --help       Show this help.
-EOF
-}
-
 case "${1:-}" in
     --upgrade|upgrade) upgrade ;;
-    --help|-h)         usage ;;
-    *)                 main "$@" ;;
+    *)                 main ;;
 esac

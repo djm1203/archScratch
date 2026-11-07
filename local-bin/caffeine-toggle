@@ -2,9 +2,9 @@
 # Caffeine toggle - prevents screen from locking/dimming
 
 if pgrep -x "hypridle" > /dev/null; then
-    killall hypridle
+    pkill -x hypridle
     notify-send "Caffeine ON" "Screen will not lock" -i display-brightness-symbolic
 else
-    hypridle &
+    setsid -f hypridle
     notify-send "Caffeine OFF" "Idle timer restored" -i display-brightness-symbolic
 fi

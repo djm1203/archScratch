@@ -165,6 +165,6 @@ Adding your own apps, configs, wallpapers, services, or keybinds is a quick edit
 
 ## Notes
 
-- `monitors.conf` defaults to `monitor=,preferred,auto,1` (auto-detect all displays). Use `nwg-displays` to generate a proper config after logging in.
+- **Hyprland >= 0.57 uses Lua config** (`Configs/hypr/hyprland.lua`); the old `hyprland.conf` format is no longer read. `monitors.lua` defaults to every display at its preferred mode; pin a layout there if you want one (`hyprctl monitors` lists outputs). `hyprlock` and `hypridle` still use their own `.conf` files.
 - Existing config files are backed up to `~/.config-backup-<timestamp>/` before being replaced.
 - `waybar-module-pomodoro` is built from source: [Andeskjerf/waybar-module-pomodoro](https://github.com/Andeskjerf/waybar-module-pomodoro)

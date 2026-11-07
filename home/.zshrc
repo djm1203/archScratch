@@ -42,9 +42,9 @@ fi
 export EDITOR='nvim'
 export VISUAL='nvim'
 
-# SSH agent: gnome-keyring's gcr-ssh-agent (unlocked at login via greetd PAM).
-# Needs: systemctl --user enable --now gcr-ssh-agent.socket
-[[ -S $XDG_RUNTIME_DIR/gcr/ssh ]] && export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/gcr/ssh
+# SSH agent: OpenSSH ssh-agent (systemd user socket); passphrase asked once per session.
+# Needs: systemctl --user enable --now ssh-agent.socket
+[[ -S $XDG_RUNTIME_DIR/ssh-agent.socket ]] && export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/ssh-agent.socket
 
 # Gruvbox dark for bat / fzf
 export BAT_THEME=gruvbox-dark

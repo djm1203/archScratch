@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# archScratch - video wallpaper via mpvpaper.
+# Usage: wallpaper-video <file> | wallpaper-video stop
+command -v mpvpaper >/dev/null 2>&1 || { echo "wallpaper-video: mpvpaper not installed" >&2; exit 1; }
+
+case "${1:-}" in
+    "")   echo "Usage: wallpaper-video <file>|stop" >&2; exit 2 ;;
+    stop) pkill -x mpvpaper; exit 0 ;;
+esac
+
+[[ -f "$1" ]] || { echo "wallpaper-video: no such file: $1" >&2; exit 1; }
+pkill -x mpvpaper 2>/dev/null
+setsid -f mpvpaper -o "no-audio loop hwdec=auto" '*' "$1" >/dev/null 2>&1

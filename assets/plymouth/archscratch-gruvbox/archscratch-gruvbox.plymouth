@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=archScratch Gruvbox
+Description=Gruvbox dark background with an orange pulsing dot
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/archscratch-gruvbox
+ScriptFile=/usr/share/plymouth/themes/archscratch-gruvbox/archscratch-gruvbox.script

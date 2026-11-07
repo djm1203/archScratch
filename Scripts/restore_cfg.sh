@@ -9,7 +9,7 @@ backup_file() {
     # Move a real file/dir (or foreign symlink) into the timestamped backup dir.
     local target="$1"
     mkdir -p "$BACKUP_DIR"
-    mv "$target" "$BACKUP_DIR/"
+    mv --backup=numbered "$target" "$BACKUP_DIR/"
     print_warn "Backed up $target → $BACKUP_DIR/"
 }
 
@@ -28,7 +28,7 @@ backup_and_link() {
         # otherwise it's the user's own link — preserve it by backing it up.
         local cur
         cur="$(readlink -f "$dest" 2>/dev/null)"
-        if [[ "$cur" == "$DOTFILES_DIR"/* ]]; then
+        if [[ "$cur" == "$(readlink -f "$DOTFILES_DIR")"/* ]]; then
             rm -f "$dest"
         else
             backup_file "$dest"
@@ -47,9 +47,22 @@ deploy_configs() {
     local cfg="$DOTFILES_DIR/Configs"
     local d
     for d in hypr waybar foot kitty wofi mako nvim fastfetch gtk-3.0 gtk-4.0 \
-             Kvantum qt5ct qt6ct waypaper zathura; do
+             qt5ct qt6ct waypaper zathura theme; do
         backup_and_link "$cfg/$d" "$HOME/.config/$d"
     done
+}
+
+deploy_qt_colors() {
+    print_header "Installing qt5ct/qt6ct Gruvbox color scheme"
+    local src="$DOTFILES_DIR/Configs/qt-colors/gruvbox.conf" d
+    if [[ ! -f "$src" ]]; then
+        print_warn "Missing $src — skipping Qt color scheme"
+        return 0
+    fi
+    for d in qt5ct qt6ct; do
+        sudo install -Dm644 "$src" "/usr/share/$d/colors/gruvbox.conf"
+    done
+    print_ok "Qt color scheme installed"
 }
 
 deploy_machine_conf() {
@@ -111,7 +124,7 @@ deploy_wallpapers() {
     for wp in "$DOTFILES_DIR/Wallpapers/"*; do
         name="$(basename "$wp")"
         if [[ ! -e "$HOME/Pictures/Wallpapers/$name" ]]; then
-            cp "$wp" "$HOME/Pictures/Wallpapers/$name" && count=$((count + 1))
+            cp -r "$wp" "$HOME/Pictures/Wallpapers/$name" && count=$((count + 1))
         fi
     done
     shopt -u nullglob
@@ -142,24 +155,40 @@ deploy_greetd() {
     print_header "Configuring greetd"
     local cfg="$DOTFILES_DIR/system/greetd-config.toml"
     local dest="/etc/greetd/config.toml"
+    if sudo cmp -s "$cfg" "$dest"; then
+        print_ok "greetd config already up to date"
+        return 0
+    fi
     sudo mkdir -p /etc/greetd
     if [[ -e "$dest" ]]; then
-        sudo cp "$dest" "${dest}.archscratch-bak.$(date +%Y%m%d-%H%M%S)" \
-            && print_warn "Backed up existing $dest"
+        sudo cp "$dest" "${dest}.archscratch-bak.$(date +%Y%m%d-%H%M%S)"             && print_warn "Backed up existing $dest"
     fi
-    # Use | as the sed delimiter so a username never collides with the pattern.
-    sed "s|{{USER}}|$USER|g" "$cfg" | sudo tee "$dest" > /dev/null
-    print_ok "greetd configured for user: $USER"
+    sudo install -Dm644 "$cfg" "$dest"
+    print_ok "greetd configured (tuigreet)"
+}
+
+deploy_zram() {
+    print_header "Configuring zram swap"
+    local cfg="$DOTFILES_DIR/system/zram-generator.conf"
+    local dest="/etc/systemd/zram-generator.conf"
+    if sudo cmp -s "$cfg" "$dest"; then
+        print_ok "zram-generator config already up to date"
+        return 0
+    fi
+    sudo install -Dm644 "$cfg" "$dest" && print_ok "zram-generator configured (active next boot)"
 }
 
 main() {
     deploy_configs
+    "$DOTFILES_DIR/local-bin/theme-switch" --init || print_warn "theme-switch --init failed (is gettext installed?)"
+    deploy_qt_colors
     deploy_machine_conf
     deploy_local_bin
     deploy_home_files
     deploy_wallpapers
     deploy_systemd_user
     deploy_greetd
+    deploy_zram
     print_ok "All dotfiles deployed"
     [[ -d "$BACKUP_DIR" ]] && print_warn "Backups saved to: $BACKUP_DIR"
 }

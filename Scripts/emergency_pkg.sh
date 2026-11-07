@@ -24,8 +24,10 @@ fi
 print_header "Enabling core services"
 # Note: no tlp here — it conflicts with power-profiles-daemon on ASUS and was
 # removed from the package set. greetd is enabled LAST, once everything else is up.
+# greetd is enabled but not started (--now would kill this TTY).
 for svc in NetworkManager bluetooth docker systemd-resolved greetd; do
-    sudo systemctl enable --now "$svc" 2>/dev/null \
+    now="--now"; [[ "$svc" == greetd ]] && now=""
+    sudo systemctl enable $now "$svc" 2>/dev/null \
         && print_ok "Enabled: $svc" \
         || print_warn "Could not enable: $svc"
 done

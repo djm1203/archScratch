@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# archScratch - OPT-IN Plymouth boot splash (Catppuccin Mocha).
+# archScratch - OPT-IN Plymouth boot splash (Gruvbox, repo-shipped theme).
 # Run directly:  bash Scripts/install_plymouth.sh
 # Or via the installer's optional prompt (passes --yes).
 #
@@ -70,24 +70,16 @@ main() {
     # 1. Plymouth itself
     sudo pacman -S --needed --noconfirm plymouth || { print_err "Could not install plymouth"; exit 1; }
 
-    # 2. A Catppuccin Mocha theme from the AUR (try a few names; fall back later)
-    if command -v yay &>/dev/null; then
-        local cand
-        for cand in plymouth-theme-catppuccin-mocha plymouth-theme-catppuccin-mocha-git plymouth-theme-catppuccin; do
-            yay -S --needed --noconfirm "$cand" 2>/dev/null && break
-        done
-    else
-        print_warn "yay not available — will use a built-in theme"
-    fi
+    # 2. Our own script theme (no AUR Gruvbox plymouth theme exists)
+    local theme=archscratch-gruvbox
+    sudo cp -r "$(dirname "$0")/../assets/plymouth/$theme" /usr/share/plymouth/themes/ \
+        || { print_err "Could not copy theme"; exit 1; }
 
     # 3. Hook + cmdline
     add_plymouth_hook
     add_splash_cmdline
 
-    # 4. Pick a theme (prefer Catppuccin, else a clean built-in) and rebuild initramfs
-    local theme
-    theme="$(plymouth-set-default-theme -l 2>/dev/null | grep -i catppuccin | head -1)"
-    [[ -z "$theme" ]] && theme="spinner"
+    # 4. Set theme and rebuild initramfs
     print_header "Setting Plymouth theme: $theme (rebuilds initramfs)"
     sudo plymouth-set-default-theme -R "$theme" \
         && print_ok "Plymouth theme set to '$theme'" \

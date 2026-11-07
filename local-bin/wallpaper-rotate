@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
-# archScratch - pick a random wallpaper and set it via swww.
-# Usage: wallpaper-rotate [WALLPAPER_DIR]   (default: ~/Pictures/Wallpapers)
+# archScratch - pick a random wallpaper and set it via awww (formerly swww, renamed upstream).
+# Usage: wallpaper-rotate [WALLPAPER_DIR]   (default: current theme folder)
 set -u
 
-DIR="${1:-$HOME/Pictures/Wallpapers}"
+# Default: ~/Pictures/Wallpapers/<current theme>/ if present, else the top-level folder.
+BASE="$HOME/Pictures/Wallpapers"
+THEME="$(cat "${XDG_CONFIG_HOME:-$HOME/.config}/theme/current" 2>/dev/null)"
+DIR="${1:-$BASE/$THEME}"
+[[ -d "$DIR" && -n "$THEME" || -n "${1:-}" ]] || DIR="$BASE"
 
-command -v swww >/dev/null 2>&1 || { echo "wallpaper-rotate: swww not installed" >&2; exit 1; }
+command -v awww >/dev/null 2>&1 || { echo "wallpaper-rotate: awww not installed" >&2; exit 1; }
 
-# Make sure the swww daemon is running (it normally starts with Hyprland).
-if ! swww query >/dev/null 2>&1; then
-    swww-daemon >/dev/null 2>&1 &
+# Make sure the awww daemon is running (it normally starts with Hyprland).
+# setsid -f detaches it so it isn't a child of the systemd oneshot.
+if ! awww query >/dev/null 2>&1; then
+    setsid -f awww-daemon >/dev/null 2>&1
     sleep 1
 fi
 
-mapfile -t imgs < <(find "$DIR" -type f \
+# Top-level files only, so subdirs like archive/ are skipped.
+mapfile -t imgs < <(find "$DIR" -maxdepth 1 -type f \
     \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null)
 
 if [[ ${#imgs[@]} -eq 0 ]]; then
@@ -22,4 +28,4 @@ if [[ ${#imgs[@]} -eq 0 ]]; then
 fi
 
 IMG="${imgs[RANDOM % ${#imgs[@]}]}"
-swww img "$IMG" --transition-type fade --transition-duration 2
+awww img "$IMG" --transition-type fade --transition-duration 2

@@ -5,18 +5,19 @@ source "$(dirname "$0")/global_fn.sh"
 
 # Set early — used by multiple functions
 ASUS_LAPTOP=false
+THINKPAD=false
 
 # ─── ASUS / G14 repo ──────────────────────────────────────────────────────────
 
 setup_asus_repo() {
     [[ "$ASUS_LAPTOP" != "true" ]] && return
 
+    # [g14] is only needed for linux-g14; asusctl and rog-control-center are in [extra].
     print_header "Adding [g14] ASUS Linux repo"
 
     # Import and locally sign the asus-linux repo signing key
     print_header "Importing asus-linux PGP signing key"
-    sudo pacman-key --recv-keys 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
-    sudo pacman-key --lsign-key 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+    sudo pacman-key --recv-keys 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35         && sudo pacman-key --lsign-key 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35         || { print_err "Could not import/sign the asus-linux key — skipping [g14] repo"; return 1; }
     print_ok "asus-linux signing key trusted"
 
     if grep -q '^\[g14\]' /etc/pacman.conf; then
@@ -103,10 +104,14 @@ install_yay() {
     sudo pacman -S --needed git base-devel --noconfirm
     local tmpdir
     tmpdir=$(mktemp -d)
-    git clone https://aur.archlinux.org/yay.git "$tmpdir/yay"
-    (cd "$tmpdir/yay" && makepkg -si --noconfirm)
-    rm -rf "$tmpdir"
-    print_ok "yay installed"
+    if git clone https://aur.archlinux.org/yay.git "$tmpdir/yay"        && (cd "$tmpdir/yay" && makepkg -si --noconfirm); then
+        rm -rf "$tmpdir"
+        print_ok "yay installed"
+    else
+        rm -rf "$tmpdir"
+        print_err "yay install failed — AUR packages will be skipped"
+        return 1
+    fi
 }
 
 ensure_rust_toolchain() {
@@ -212,6 +217,12 @@ prompt_nvidia() {
         # linux-g14 requires nvidia-open-dkms (open source kernel module)
         sudo pacman -S --needed --noconfirm nvidia-open-dkms nvidia-utils nvidia-settings vulkan-icd-loader
     else
+        # dkms needs headers for the RUNNING kernel (linux, -lts, -zen, -hardened)
+        local kpkg=linux
+        case "$(uname -r)" in
+            *lts*) kpkg=linux-lts ;; *zen*) kpkg=linux-zen ;; *hardened*) kpkg=linux-hardened ;;
+        esac
+        sudo pacman -S --needed --noconfirm "$kpkg-headers"
         sudo pacman -S --needed --noconfirm nvidia-dkms nvidia-utils nvidia-settings vulkan-icd-loader
     fi
     print_ok "NVIDIA drivers installed"
@@ -220,19 +231,28 @@ prompt_nvidia() {
     sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
     sudo systemctl enable --now nvidia-powerd 2>/dev/null || true
     print_ok "NVIDIA power services enabled"
+}
 
-    if [[ "$ASUS_LAPTOP" == "true" ]]; then
-        print_header "Installing ASUS tools (from [g14] repo)"
-        # supergfxctl is phased out per asus-linux.org — skip it
-        sudo pacman -S --needed --noconfirm asusctl power-profiles-daemon rog-control-center
-        print_ok "ASUS tools installed"
+install_asus_tools() {
+    [[ "$ASUS_LAPTOP" != "true" ]] && return
+    print_header "Installing ASUS tools"
+    # supergfxctl is phased out per asus-linux.org — skip it
+    sudo pacman -S --needed --noconfirm asusctl power-profiles-daemon rog-control-center
+    print_ok "ASUS tools installed"
 
-        # power-profiles-daemon conflicts with tlp — disable tlp, use ppd instead
-        sudo systemctl disable --now tlp.service 2>/dev/null || true
-        sudo systemctl enable --now power-profiles-daemon.service
-        # asusd activates automatically via udev — no manual enable needed
-        print_ok "power-profiles-daemon enabled, tlp disabled (they conflict)"
-    fi
+    # power-profiles-daemon conflicts with tlp — disable tlp, use ppd instead
+    sudo systemctl disable --now tlp.service 2>/dev/null || true
+    sudo systemctl enable --now power-profiles-daemon.service
+    # asusd activates automatically via udev — no manual enable needed
+    print_ok "power-profiles-daemon enabled, tlp disabled (they conflict)"
+}
+
+install_thinkpad_tools() {
+    [[ "$THINKPAD" != "true" ]] && return
+    print_header "Installing ThinkPad tools"
+    # No power-profiles-daemon here: it conflicts with tlp. Services are enabled
+    # by restore_svc.sh; intel-ucode comes from the microcode prompt.
+    pac_install tlp thermald intel-media-driver && print_ok "ThinkPad tools installed"
 }
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -240,13 +260,13 @@ prompt_nvidia() {
 upgrade() {
     # Packages-only path for `install.sh --upgrade`: sync + install any newly
     # listed packages/gems. No hardware prompts, kernel, or driver changes.
-    rank_mirrors
     sudo pacman -Syu --noconfirm || true
     install_pacman_packages
     configure_npm
     ensure_rust_toolchain
     install_ruby_gems
     install_aur_packages
+    command -v yay &>/dev/null && { yay -Sua --noconfirm || print_warn "AUR upgrade had errors"; }
 }
 
 main() {
@@ -257,10 +277,15 @@ main() {
 
     # Ask about ASUS first — affects repo setup and package choices
     print_header "Hardware detection"
-    if ask_yes_no "Is this an ASUS ROG/TUF laptop (needs G14 kernel + ASUS tools)?"; then
-        ASUS_LAPTOP=true
-        print_ok "ASUS mode enabled"
-    fi
+    echo -e "  1) ASUS ROG/TUF (G14 kernel + ASUS tools)"
+    echo -e "  2) ThinkPad (tlp + thermald)"
+    echo -e "  3) Other"
+    read -rp "$(echo -e "${YELLOW}  [?]${NC} Hardware profile [1/2/3]: ")" hw
+    case "$hw" in
+        1) ASUS_LAPTOP=true; print_ok "ASUS mode enabled" ;;
+        2) THINKPAD=true;    print_ok "ThinkPad mode enabled" ;;
+        *) print_ok "Generic hardware" ;;
+    esac
 
     rank_mirrors           # fastest mirrors first (no-op if reflector not present yet)
     sudo pacman -Syu --noconfirm || true
@@ -274,6 +299,8 @@ main() {
     prompt_microcode
     install_g14_kernel     # installs g14 kernel + bootloader entry (no-op if not ASUS)
     prompt_nvidia
+    install_asus_tools     # no-op if not ASUS
+    install_thinkpad_tools # no-op if not ThinkPad
 }
 
 main "$@"

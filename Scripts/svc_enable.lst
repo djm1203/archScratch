@@ -5,6 +5,8 @@
 #   power-profiles-daemon, nvidia-suspend/hibernate/resume, nvidia-powerd
 #   asusd enables automatically via udev — no manual entry needed
 #   tlp is disabled on ASUS machines (conflicts with power-profiles-daemon)
+#   ThinkPad profile: tlp + thermald are enabled by restore_svc.sh if installed
+#   greetd is enabled without --now (restore_svc.sh) so the installer TTY survives
 
 NetworkManager
 bluetooth
@@ -15,4 +17,6 @@ systemd-resolved
 paccache.timer
 # Refresh fastest mirrors weekly (reflector)
 reflector.timer
+# Weekly SSD TRIM
+fstrim.timer
 # Note: ufw is configured + enabled with rules in restore_svc.sh (setup_firewall)

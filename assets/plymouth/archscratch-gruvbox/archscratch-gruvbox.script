@@ -1,0 +1,16 @@
+# archScratch Gruvbox: solid #282828 background, pulsing orange (#fe8019) dot.
+# Drawn with Image.Text so no image files are needed (a filled circle glyph).
+Window.SetBackgroundTopColor(0.157, 0.157, 0.157);
+Window.SetBackgroundBottomColor(0.157, 0.157, 0.157);
+
+dot = Image.Text("●", 0.996, 0.502, 0.098, 1, "Sans 48");
+sprite = Sprite(dot);
+sprite.SetX(Window.GetWidth() / 2 - dot.GetWidth() / 2);
+sprite.SetY(Window.GetHeight() / 2 - dot.GetHeight() / 2);
+
+frame = 0;
+fun refresh() {
+    frame++;
+    sprite.SetOpacity(0.55 + 0.45 * Math.Sin(frame / 12));
+}
+Plymouth.SetRefreshFunction(refresh);

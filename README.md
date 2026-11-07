@@ -11,14 +11,14 @@ Personal Arch Linux dotfiles — Hyprland desktop setup. Clone and run one comma
 | Bar             | Waybar                        |
 | App Launcher    | Wofi                          |
 | Notifications   | Mako                          |
-| Wallpaper       | swww + Waypaper               |
+| Wallpaper       | awww + Waypaper (mpvpaper for video: `wallpaper-video`) |
 | Lock / Idle     | Hyprlock + Hypridle           |
 | File Manager    | Dolphin                       |
 | Terminal        | Foot (default) · Kitty (for a background image) |
 | Shell           | Zsh + oh-my-zsh + Powerlevel10k |
 | Editors         | Neovim (LazyVim) · VS Code    |
 | Dev tooling     | node, go, rust, ruby + rails, docker, lazygit, fzf, ripgrep, fd, bat, eza, jq, tmux, gdb, cmake |
-| Theme           | Tokyo Night / Catppuccin Mocha (mauve accent) |
+| Theme           | Switchable: Gruvbox (default), Monokai, Catppuccin, Nord, Rosé Pine, Tokyo Night |
 | Icons           | Papirus (breeze-dark)         |
 | Fonts           | JetBrains Mono Nerd, Inter    |
 
@@ -72,23 +72,20 @@ symlinked into the repo, a plain `git pull` already updates dotfiles instantly �
 
 - Run `p10k configure` on first zsh login to set up your prompt
 - Run `nwg-displays` to configure your monitor layout (resolution, scale, position)
-- `Super+W` opens the wallpaper picker — sample `moon.png` is in `~/Pictures/Wallpapers/`
+- `Super+W` opens the wallpaper picker — Gruvbox wallpapers are in `~/Pictures/Wallpapers/`
 - **Wallpapers auto-rotate** every 15 min via a systemd user timer (`wallpaper-rotate.timer`).
   Drop more images into `Wallpapers/` (they deploy to `~/Pictures/Wallpapers/`).
 - **Terminal background image:** open Kitty with `Super+Shift+T` and place your image at
   `~/.config/kitty/bg.png` (i.e. `Configs/kitty/bg.png` in the repo). Foot stays the default
   terminal and uses transparency over the wallpaper instead.
 
-## Recoloring (changing the accent)
+## Themes
 
-The accent color (currently mauve `#cba6f7`) is centralized. To recolor the whole desktop,
-change it in these spots and reload:
-
-- `Configs/hypr/colors.conf` — `$accent` (window borders, lock screen)
-- `Configs/waybar/style.css` — `@define-color accent` (top of file)
-- `Configs/wofi/style.css` — `@define-color accent`
-- `Configs/mako/config` — `border-color`
-- `Configs/kitty/kitty.conf` / `Configs/foot/foot.ini` — palette (optional)
+`Super+Shift+W` (or `theme-switch <name>`) switches the whole desktop live: Hyprland, Waybar,
+Wofi, Mako, Kitty, Foot and the wallpaper folder `~/Pictures/Wallpapers/<theme>/`. Palettes live
+in `Configs/theme/palettes/*.env` (one file per theme, MIT-licensed values from
+[tinted-theming](https://github.com/tinted-theming/schemes) where available); copy one to add a
+theme. GTK/Qt stay on Gruvbox, and Neovim keeps LazyVim's own colorscheme.
 
 ## Keybindings
 
@@ -131,7 +128,7 @@ archScratch/
 │   ├── install_pomodoro.sh
 │   ├── install_git_accounts.sh
 │   ├── install_claude.sh
-│   ├── install_plymouth.sh # opt-in boot splash (Catppuccin)
+│   ├── install_plymouth.sh # opt-in boot splash (Gruvbox)
 │   └── emergency_pkg.sh # resilient recovery if pkg_install fails
 ├── Configs/             # all ~/.config/ files
 │   ├── hypr/colors.conf # central accent palette

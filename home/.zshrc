@@ -30,8 +30,13 @@ plugins=(git)
 # ─── Powerlevel10k theme (pacman package, with git-clone fallback) ────────────
 if [[ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ]]; then
   source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
-elif [[ -f ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme ]]; then
-  source ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme
+else
+  # Git-clone fallback; also check ~/.oh-my-zsh/custom, where older
+  # install_zsh.sh versions cloned it even with packaged oh-my-zsh.
+  for _f in ${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme \
+            $HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme; do
+    [[ -f $_f ]] && { source "$_f"; break; }
+  done
 fi
 
 export EDITOR='nvim'

@@ -3,7 +3,12 @@
 
 source "$(dirname "$0")/global_fn.sh"
 
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+# Must match home/.zshrc: packaged oh-my-zsh → ~/.config/oh-my-zsh-custom.
+if [[ -d /usr/share/oh-my-zsh ]]; then
+    ZSH_CUSTOM="$HOME/.config/oh-my-zsh-custom"
+else
+    ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+fi
 
 install_omz() {
     # Prefer the AUR package (no curl|bash). It installs read-only to

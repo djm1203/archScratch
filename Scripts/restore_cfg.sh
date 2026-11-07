@@ -220,7 +220,9 @@ deploy_thinkpad() {
 main() {
     deploy_configs
     if command -v envsubst &>/dev/null; then
-        "$DOTFILES_DIR/local-bin/theme-switch" --init || print_err "theme-switch --init FAILED: bar/launcher/terminal colors will be missing"
+        # Run via bash: deploy_local_bin (which chmods +x) hasn't run yet, so
+        # don't depend on the repo file's exec bit.
+        bash "$DOTFILES_DIR/local-bin/theme-switch" --init || print_err "theme-switch --init FAILED: bar/launcher/terminal colors will be missing"
     else
         print_err "envsubst (gettext) missing: run 'pacman -S gettext' then 'theme-switch --init'"
     fi

@@ -19,39 +19,96 @@ Personal Arch Linux dotfiles — Hyprland desktop setup. Clone and run one comma
 | Editors         | Neovim (LazyVim) · VS Code    |
 | Dev tooling     | node, go, rust, ruby + rails, docker, lazygit, fzf, ripgrep, fd, bat, eza, jq, tmux, gdb, cmake |
 | Theme           | Switchable: Gruvbox (default), Monokai, Catppuccin, Nord, Rosé Pine, Tokyo Night |
-| Icons           | Papirus (breeze-dark)         |
+| Icons / GTK     | Gruvbox Plus icons, gruvbox-dark-gtk |
 | Fonts           | JetBrains Mono Nerd, Inter    |
 
-## Prerequisites
+## Install guide (start here)
 
-- Fresh Arch Linux install (base + base-devel + git + sudo + a user account)
-- Internet connection
-- `sudo` access
+### 1. Install the Arch base system
 
-## Install
+Boot the Arch ISO and run `archinstall`. Choose:
+
+- **Profile:** Minimal (no desktop; this repo installs Hyprland)
+- **Network:** NetworkManager
+- **User:** create a normal user with sudo rights (never run the installer as root)
+- **Extra packages:** `git`
+- **Bootloader / filesystem:** your choice (GRUB or systemd-boot; ext4 or btrfs)
+
+Reboot, log in on the text console, and get online:
 
 ```bash
-git clone git@github.com:djm1203/archScratch.git
+nmcli device wifi connect "YOUR_SSID" password "YOUR_PASSWORD"   # skip if on ethernet
+```
+
+### 2. Clone and run
+
+```bash
+git clone https://github.com/djm1203/archScratch.git   # HTTPS: no SSH key exists yet
 cd archScratch
 ./install.sh
 ```
 
-The script will:
-1. Install all pacman packages
-2. Install AUR packages via `yay`
-3. Prompt for CPU microcode (Intel/AMD)
-4. Prompt for NVIDIA GPU drivers + optional ASUS G14 tools
-5. Set up Zsh + oh-my-zsh + Powerlevel10k + plugins
-6. Build `waybar-module-pomodoro` from source (Rust)
-7. Optionally install Claude Code CLI
-8. Symlink all dotfiles into `~/.config/` (backs up existing files)
-9. Configure greetd
-10. Enable systemd services
-11. Prompt to reboot
+It asks a few questions, then installs for a while (it downloads a lot). It does not stop on a single failed
+package; a pass/fail summary and a log (`~/archscratch-install-<timestamp>.log`) come at the end.
 
-> The installer is **resilient**: it does not abort on the first error. Each step is
-> tracked and a pass/fail summary is printed at the end, and a full log is written to
-> `~/archscratch-install-<timestamp>.log`. A single bad package no longer fails the batch.
+### 3. What to answer, by machine
+
+| Prompt | ThinkPad T480 | ASUS ROG / NVIDIA laptop | Other PC / laptop |
+|---|---|---|---|
+| Hardware profile | **2** (ThinkPad; it's the default if detected) | **1** (ASUS) | **3** (Other) |
+| CPU microcode | **1** Intel (default) | Intel or AMD to match your CPU | to match your CPU |
+| NVIDIA GPU? | **No** (MX150 is too old for the open driver; the Intel GPU is plenty) | **Yes** | Yes only if you have one |
+| Claude Code? | Yes | Yes | Yes |
+| Fingerprint reader? | Yes if offered (see ThinkPad notes) | Only offered if a supported reader is found | same |
+| Boot splash (Plymouth)? | Skip the first time; add later with `bash Scripts/install_plymouth.sh` | same | same |
+| Git setup | Your name, then single or work + personal accounts (creates SSH keys) | same | same |
+| Reboot now? | Yes | Yes | Yes |
+
+What each machine gets beyond the common base (Hyprland, themes, dev tools, Proton VPN):
+
+| | ThinkPad T480 | ASUS ROG / NVIDIA | Other |
+|---|---|---|---|
+| Power | `tlp` (battery held at 75-80%) + `throttled` (fixes CPU throttling) | `asusctl` + `power-profiles-daemon` | none extra |
+| Graphics | Intel video acceleration, `vulkan-intel` | `nvidia-open-dkms` (ASUS) or `nvidia-dkms` + matching kernel headers, NVIDIA suspend services | per your answers |
+| Kernel | stock | `linux-g14` from the asus-linux repo | stock |
+| Input | TrackPoint middle-button scrolling, faster touchpad | n/a | n/a |
+| Extras | Thunderbolt `bolt`, optional fingerprint | `rog-control-center` | n/a |
+
+### 4. First boot
+
+1. At the login screen (`tuigreet`) log in with your **password** (not fingerprint). Hyprland starts.
+2. `Super+T` opens a terminal. Run `p10k configure` once to set up the prompt.
+3. Put wallpapers in `~/Pictures/Wallpapers/gruvbox/` (none ship in the repo), then `Super+W` to pick one.
+4. `Super+Shift+W` switches the color theme (Gruvbox, Monokai, Catppuccin, Nord, Rosé Pine, Tokyo Night).
+5. Sign in to Proton VPN from the app launcher (`Super+R`). It lives in the tray.
+
+**ThinkPad T480 checklist**
+
+- `hyprctl devices`: confirm the TrackPoint is named `tpps/2-elan-trackpoint`. If not, fix the name in `Scripts/restore_cfg.sh` and rerun `./install.sh --upgrade`.
+- `sudo throttled --monitor`: watch the CPU power limits (the T480's known throttling).
+- `tlp-stat -b`: check the 75-80% charge limits. `sudo tlp fullcharge BAT0` charges to 100% once (e.g. before travel).
+- BIOS: if it offers a Linux/S3 sleep mode, pick it for better suspend.
+- **Fingerprint** (reader 06cb:009a): stock Arch drivers don't support it, so the installer uses AUR `python-validity` + `open-fprintd`.
+  Run `fprintd-enroll`, then `fprintd-verify`, then `bash Scripts/fingerprint_pam.sh` to enable it for `sudo`
+  (password stays as the fallback; undo with `--undo`). It's deliberately not used at login (it can't unlock the keyring).
+  This is the most fragile part; if it fails, check `systemctl status python3-validity`.
+
+**ASUS ROG / NVIDIA checklist**
+
+- Reboot once so the NVIDIA module and `linux-g14` kernel load; check `nvidia-smi`.
+- `hypr/machine.lua` (generated) holds the NVIDIA settings; if the cursor is invisible or Electron apps look blurry, see the NVIDIA notes at https://wiki.hypr.land.
+- Power profiles: `powerprofilesctl`; ASUS controls: `rog-control-center`.
+- Set your monitor layout in `Configs/hypr/monitors.lua` (see `hyprctl monitors`).
+
+### 5. If something goes wrong
+
+| Symptom | Fix |
+|---|---|
+| Hyprland shows an error banner | `hyprctl configerrors` lists the bad line in `~/.config/hypr/hyprland.lua` |
+| Bar / launcher / terminal colors missing | `theme-switch --init` (needs `gettext`, which the installer adds) |
+| A package failed to install | Read the install log; rerun `./install.sh --upgrade` (safe to repeat) |
+| Package step broke pacman | `bash Scripts/emergency_pkg.sh` |
+| Black screen after reboot | `Ctrl+Alt+F2`, log in, run `journalctl -b -p err` and `Hyprland` to see the error |
 
 ## Updating
 
@@ -71,7 +128,7 @@ symlinked into the repo, a plain `git pull` already updates dotfiles instantly �
 ## After Install
 
 - Run `p10k configure` on first zsh login to set up your prompt
-- Run `nwg-displays` to configure your monitor layout (resolution, scale, position)
+- Set your monitor layout in `Configs/hypr/monitors.lua` (`hyprctl monitors` lists outputs)
 - `Super+W` opens the wallpaper picker. Wallpapers live in `~/Pictures/Wallpapers/` — theme-specific
   ones go in `~/Pictures/Wallpapers/<theme>/` (e.g. `gruvbox/`); none ship in the repo, add your own
 - **Wallpapers auto-rotate** every 15 min via a systemd user timer (`wallpaper-rotate.timer`).
@@ -143,20 +200,6 @@ archScratch/
 ├── system/              # system config (greetd)
 └── Wallpapers/          # wallpaper set (auto-rotated)
 ```
-
-## ThinkPad (T480)
-
-Choose "ThinkPad" at the hardware prompt. You get `tlp` (battery held at 75-80%, both batteries),
-`throttled` (fixes the T480's CPU power-limit throttling; check with `sudo throttled --monitor`),
-Intel video acceleration, `bolt` for Thunderbolt docks, a faster touchpad poll rate (after reboot),
-and TrackPoint middle-button scrolling. `thermald` is deliberately not installed (it can fight
-`throttled`). Run `hyprctl devices` once and correct the TrackPoint name in
-`Scripts/restore_cfg.sh` if it differs. In the BIOS, pick the Linux/S3 sleep mode if offered.
-
-**Fingerprint:** the T480 reader (06cb:009a) is not supported by stock Arch packages yet, so the
-installer uses the AUR `python-validity` + `open-fprintd` stack. After install: `fprintd-enroll`,
-`fprintd-verify`, then `bash Scripts/fingerprint_pam.sh` to enable it for `sudo` (password remains
-the fallback; undo with `--undo`). It is intentionally not used at login (it can't unlock the keyring).
 
 ## Extending
 
